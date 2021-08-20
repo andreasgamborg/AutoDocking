@@ -106,8 +106,8 @@ rg = (m*rg + mp*rp)/(m+mp);           % CG location corrected for payload
 Ig = Ig_CG - m * Smtrx(rg)^2 - mp * Smtrx(rp)^2;  % hull + payload in CO
 
 % Experimental propeller data including lever arms
-l1 = -y_pont;                           % lever arm, left propeller (m)
-l2 = y_pont;                            % lever arm, right propeller (m)
+l1 = [0;-y_pont;0];                     % lever arm, left propeller (m)
+l2 = [0;y_pont;0];                      % lever arm, right propeller (m)
 k_pos = 0.02216/2;                      % Positive Bollard, one propeller
 k_neg = 0.01289/2;                      % Negative Bollard, one propeller
 n_max =  sqrt((0.5*24.4 * g)/k_pos);    % maximum propeller rev. (rad/s)
@@ -189,10 +189,15 @@ Thrust = Propeller.K*Propeller.R*sin(Propeller.angle)*n.*abs(n) ...
     - Propeller.K*cos(Propeller.angle)*abs(n)*nu_r(1);
 info.Thrust = Thrust;
 
+Thrust = [Thrust(1) 0 ; 0 Thrust(2)];
+
+tau1 = [cos(xi)'; sin(xi)'; zeros(1,length(xi))] * Thrust;
 
 
+tau2 = Smtrx(l1)*tau1(:,1) + Smtrx(l2)*tau1(:,2);
 % Control forces and moments due to thrust
-tau = [Thrust(1) + Thrust(2) 0 0 0 0 -l1 * Thrust(1) - l2 * Thrust(2) ]';
+%tau = [Thrust(1) + Thrust(2) 0 0 0 0 -l1 * Thrust(1) - l2 * Thrust(2) ]';
+tau = [sum(tau1,2); tau2];
 
 % Linear damping using relative velocities + nonlinear yaw damping
 Xh = Xu * nu_r(1);

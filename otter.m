@@ -40,7 +40,7 @@ function [xdot, info] = otter(Input)
 % Unpack input struct
 
 x = Input.x;
-n = Input.prop_velo;
+n = Input.prop.velo;
 mp = Input.mp;
 rp = Input.rp;
 V_c = Input.V_c;

@@ -188,11 +188,15 @@ n(n<n_min) = n_min;
 Thrust = Propeller.K*Propeller.R*sin(Propeller.angle)*n.*abs(n) ...
     - Propeller.K*cos(Propeller.angle)*abs(n)*nu_r(1);
 info.Thrust = Thrust;
+%Thrust = [Thrust(1) 0 ; 0 Thrust(2)]
 
+tau1 = [cos(xi)'; sin(xi)'; zeros(1,length(xi))] * Thrust
 
+tau2 = 0
 
 % Control forces and moments due to thrust
 tau = [Thrust(1) + Thrust(2) 0 0 0 0 -l1 * Thrust(1) - l2 * Thrust(2) ]';
+tau = [tau1; tau2];
 
 % Linear damping using relative velocities + nonlinear yaw damping
 Xh = Xu * nu_r(1);

@@ -1,4 +1,4 @@
-function [xdot, info] = ferry(Input)
+function [xdot, info] = ferry6(Input)
 % [xdot,U] = otter(x,n,mp,rp,V_c,beta_c) returns the speed U in m/s (optionally)
 % and the time derivative of the state vector:
 %    x = [ u v w p q r x y z phi theta psi ]'
@@ -179,11 +179,9 @@ Kp = -2 * 0.2 *w4 * M(4,4);
 Mq = -2 * 0.4 *w5 * M(5,5);
 Nr = -M(6,6) / T_yaw;            % specified using the time constant in T_yaw
 
-% Control forces and moments - with propeller revolution saturation
-
+% Propeller forces and moments
 n(n>n_max) = n_max;             % saturation, physical limits
-n(n<n_min) = n_min;
-
+n(n<n_min) = n_min;             % saturation, physical limits
 
 Thrust = Propeller.K*Propeller.R*sin(Propeller.angle)*n.*abs(n) ...
     - Propeller.K*cos(Propeller.angle)*abs(n)*nu_r(1);
@@ -192,11 +190,7 @@ info.Thrust = Thrust;
 Thrust = [Thrust(1) 0 ; 0 Thrust(2)];
 
 tau1 = [cos(xi)'; sin(xi)'; zeros(1,length(xi))] * Thrust;
-
-
 tau2 = Smtrx(l1)*tau1(:,1) + Smtrx(l2)*tau1(:,2);
-% Control forces and moments due to thrust
-%tau = [Thrust(1) + Thrust(2) 0 0 0 0 -l1 * Thrust(1) - l2 * Thrust(2) ]';
 tau = [sum(tau1,2); tau2];
 
 % Linear damping using relative velocities + nonlinear yaw damping

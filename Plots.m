@@ -10,7 +10,19 @@ niceplot(History.Pos(1,:),History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"
 axis equal
 grid
 
-VesselPlot
+color = 'g-';
+for i = [1:1000:N, N]
+    
+    vessel = vesselplot(History.Pos(6,i),History.Propeller(1:2,i));
+
+    if i == N
+        color = 'r-';
+    end
+    
+    plot(vessel(1,:)+History.Pos(1,i), vessel(2,:)+History.Pos(2,i), color, 'LineWidth', 2);
+    
+    color = 'b-';
+end
 
 
 title = 'Orientation';

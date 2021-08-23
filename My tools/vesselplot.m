@@ -14,13 +14,13 @@ propx = [0,-2,-3,-1,-3,-1,-2,0];
 propy = [0,0,2,2,-2,-2,0,0];
 prop = [propx;propy]*modelScale*propScale;
 
-propLocation = [-2 -2; 2 -2]*modelScale;
+propLocation = [-2 -2; -2 2]*modelScale;
 
 R = [cos(-yaw) sin(-yaw); -sin(-yaw) cos(-yaw)];
     modelR = R*model;
     
-RP = [cos(xi(1)) sin(xi(1)); -sin(xi(1)) cos(xi(1))];
-RSB = [cos(xi(2)) sin(xi(2)); -sin(xi(2)) cos(xi(2))];
+RP = [cos(-xi(1)) sin(-xi(1)); -sin(-xi(1)) cos(-xi(1))];
+RSB = [cos(-xi(2)) sin(-xi(2)); -sin(-xi(2)) cos(-xi(2))];
 propP = R*(RP*prop+propLocation(:,1));
 propSB = R*(RSB*prop+propLocation(:,2));
 

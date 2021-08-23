@@ -106,8 +106,8 @@ rg = (m*rg + mp*rp)/(m+mp);           % CG location corrected for payload
 Ig = Ig_CG - m * Smtrx(rg)^2 - mp * Smtrx(rp)^2;  % hull + payload in CO
 
 % Experimental propeller data including lever arms
-l1 = [0;-y_pont;0];                     % lever arm, left propeller (m)
-l2 = [0;y_pont;0];                      % lever arm, right propeller (m)
+l1 = [-L*0.4;-y_pont;0.1];                     % lever arm, left propeller (m)
+l2 = [-L*0.4;y_pont;0.1];                      % lever arm, right propeller (m)
 k_pos = 0.02216/2;                      % Positive Bollard, one propeller
 k_neg = 0.01289/2;                      % Negative Bollard, one propeller
 n_max =  sqrt((0.5*24.4 * g)/k_pos);    % maximum propeller rev. (rad/s)

@@ -9,6 +9,7 @@ title = 'Course';
 niceplot(History.Pos(1,:),History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'north');
 axis equal
 grid
+set(gca, 'YDir','reverse')
 
 color = 'g-';
 for i = [1:1000:N, N]
@@ -42,7 +43,7 @@ names = ["P", "SB"];
 niceplot(T,History.Propeller(3:4,:), names, title, ["-"], ["time [s]", "[rad/s]"], 'northwest');
 title = 'Propeller Thrust';
 names = ["P", "SB"];
-niceplot(T,History.Propeller(5:6,:), names, title, ["-"], ["time [s]", "[N]"], 'southwest');
+niceplot(T,History.Propeller(5:6,:), names, title, ["r-","g--"], ["time [s]", "[N]"], 'southwest');
 
 answer = questdlg('Would you like too close the plots?', ...
     'Plot tool', ...

@@ -10,30 +10,7 @@ niceplot(History.Pos(1,:),History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"
 axis equal
 grid
 
-scale = [   min(History.Pos(:,1))  max(History.Pos(:,1));
-    min(History.Pos(:,2))  max(History.Pos(:,2))
-    ];
-m = max(max(abs(scale)));
-
-
-modelx = [2,5,2,-4,-4,-2,-2,-4,-4,2,5,2,2];
-modely = [1,2,3,3,1,1,-1,-1,-3,-3,-2,-1,1];
-model = [modelx;modely]*2/9;
-
-atSample = [1:1000:N, N];
-color = 'g-';
-for i = atSample
-    R = [cos(-History.Pos(6,i)) sin(-History.Pos(6,i)); -sin(-History.Pos(6,i)) cos(-History.Pos(6,i))];
-    modelR = R*model;
-    
-    if i == N
-        color = 'r-';
-    end
-    
-    plot(modelR(1,:)+History.Pos(1,i), modelR(2,:)+History.Pos(2,i), color, 'LineWidth', 2);
-    color = 'b-';
-end
-
+VesselPlot
 
 
 title = 'Orientation';
@@ -50,10 +27,10 @@ niceplot(T,History.Velo(4:6,:), names, title, ["--"], ["time [s]", "[rad/s]"], '
 
 title = 'Propeller velocity';
 names = ["P", "SB"];
-niceplot(T,History.Propeller(1:2,:), names, title, ["-"], ["time [s]", "[rad/s]"], 'northwest');
+niceplot(T,History.Propeller(3:4,:), names, title, ["-"], ["time [s]", "[rad/s]"], 'northwest');
 title = 'Propeller Thrust';
 names = ["P", "SB"];
-niceplot(T,History.Propeller(3:4,:), names, title, ["-"], ["time [s]", "[N]"], 'southwest');
+niceplot(T,History.Propeller(5:6,:), names, title, ["-"], ["time [s]", "[N]"], 'southwest');
 
 answer = questdlg('Would you like too close the plots?', ...
     'Plot tool', ...

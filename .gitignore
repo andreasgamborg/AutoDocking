@@ -1,1 +1,16 @@
+# Matlab
 *.asv
+
+# Latex
+*.aux
+*.fls
+*.bbl
+*.bcf
+*.blg
+*.bcf
+*.log
+*.out
+*.xml
+*.toc
+*.gz
+*.fdb*

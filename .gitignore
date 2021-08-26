@@ -1,6 +1,10 @@
 # Matlab
 *.asv
 
+#
+*.png
+*.ini
+
 # Latex
 *.aux
 *.fls

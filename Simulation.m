@@ -2,6 +2,7 @@
 close all
 clear all
 clc
+
 %% Init
 Ts = 1/50;
 N = 12000;
@@ -22,8 +23,10 @@ History.Pos = zeros(6,N);
 History.Velo = zeros(6,N);
 
 %% Main Loop
+% Idle
+%      thrust_seq = makeref([0; 0; 0; 0], N);
 % Full - Break - Full
-%     thrust_seq = makeref([50 0 50; 50 0 50; 0 0 0 ; 0 0 0], N/3);
+     %thrust_seq = makeref([30 0 30; 30 0 30; 0 0 0 ; 0 0 0], N/3);
 % S-Line
 %     thrust_seq = makeref([30 30 20 30; 30 20 30 30; 0 0 0 0; 0 0 0 0], N/4);
 % Port Thruster half rotation

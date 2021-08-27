@@ -12,7 +12,7 @@ grid
 set(gca, 'YDir','reverse')
 
 color = 'g-';
-for i = [1:1000:N, N]
+for i = [1:500:N, N]
     
     vessel = vesselplot(History.Pos(3,i),History.Propeller(1:2,i));
     
@@ -27,15 +27,16 @@ end
 
 
 title = 'Linear Velocities';
-names = ["$u$ surge", "$v$ sway", "$w$ heave"];
-niceplot(T,History.Velo(1:3,:), names, title, ["--"], ["time [s]", "[m/s]"], 'northeast');
+names = ["$u$ surge", "$v$ sway"];
+niceplot(T,toKnots(History.Velo(1:2,:),'m/s'), names, title, ["--"], ["time [s]", "[knot]"], 'northeast');
 
 title = 'Orientation';
 names = ["$\psi$ yaw"];
 if(1)
     niceplot(T,rad2deg(History.Pos(3,:)), names, title, ["--"], ["time [s]", ""], 'south');
-    yticks(-180:10:180)
-    yticklabels([-180:10:180]+"°")
+    yticks(-180:30:180)
+    tl = [180:30:359 0:30:180]+"°"; tl(7) = "N"; tl(10) = "E"; tl([1,13]) = "S"; tl(4) = "W";
+    yticklabels(tl)
 else
     niceplot(T,History.Pos(4:6,:), names, title, ["--"], ["time [s]", "[rad]"], 'south');
 end
@@ -51,17 +52,17 @@ end
 
 title = 'Propeller velocity';
 names = ["P", "SB"];
-niceplot(T,History.Propeller(3:4,:), names, title, ["-"], ["time [s]", "[rad/s]"], 'northwest');
+niceplot(T,toRPM(History.Propeller(3:4,:)), names, title, ["-"], ["time [s]", "[rpm]"], 'northwest');
 title = 'Propeller Thrust';
 names = ["P", "SB"];
 niceplot(T,History.Propeller(5:6,:), names, title, ["r-","g--"], ["time [s]", "[N]"], 'southwest');
 
-answer = questdlg('Would you like too close the plots?', ...
-    'Plot tool', ...
-    'Yes','No','Yes');
-if strcmp(answer, 'Yes')
-    close all
-end
+% answer = questdlg('Would you like too close the plots?', ...
+%     'Plot tool', ...
+%     'Yes','No','Yes');
+% if strcmp(answer, 'Yes')
+%     close all
+% end
 
 
 

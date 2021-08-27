@@ -1,11 +1,11 @@
 %% Clean
-% close all
-% clear all
-% clc
+close all
+clear all
+clc
 
 %% Init
 Ts = 1/50;
-N = 12000;
+N = 3000;
 t = 0; % Start time
 T = [];
 
@@ -31,13 +31,15 @@ State.current.beta = 0;                   % current direction (rad);
      %thrust_seq = makeref([30 0 30; 30 0 30; 0 0 0 ; 0 0 0], N/3);
 % S-Line
 %     thrust_seq = makeref([30 30 20 30; 30 20 30 30; 0 0 0 0; 0 0 0 0], N/4);
+% large circle
+    thrust_seq = makeref([30; 25; 0; 0], N);
 % Port Thruster half rotation
     %thrust_seq = makeref([20 20 20 20 20; 0 0 0 0 0 ; 0 pi/4 pi/2 3*pi/4 pi; 0 0 0 0 0], N/5);
 % Starbord Thruster half rotation
     %thrust_seq = makeref([0 0 0 0 0; 20 20 20 20 20 ; 0 0 0 0 0; 0 -pi/4 -pi/2 -3*pi/4 -pi], N/5);
 % Slalom by use of thruster angle
-    a = 12;
-    thrust_seq = makeref([20 20 20 20 20; 20 20 20 20 20 ; 0 -pi/a pi/a -pi/a pi/a; 0 -pi/a pi/a -pi/a pi/a], N/5);
+%     a = 12;
+%     thrust_seq = makeref([20 20 20 20 20; 20 20 20 20 20 ; 0 -pi/a pi/a -pi/a pi/a; 0 -pi/a pi/a -pi/a pi/a], N/5);
     
 disp('Running Simulation...')
 for i = 1:N
@@ -45,7 +47,7 @@ for i = 1:N
     State.prop.xi = thrust_seq(3:4,i);
     [x, info] = ferry3(State);
     State.x = State.x + Ts * x;
-    
+    State.x(6) = wrapToPi(State.x(6))
     T = [T t];
     History.Velo(:,i) = State.x(1:3);
     History.Pos(:,i) = State.x(4:6);

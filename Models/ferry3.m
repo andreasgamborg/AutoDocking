@@ -33,7 +33,7 @@ g   = 9.81;         % acceleration of gravity (m/s^2)
 rho = 1025;         % density of water (kg/m^3)
 L = 6.0;            % length (m)
 B = 2.0;            % beam (m)
-m = 1000.0;         % mass (kg)
+m = 60.0;         % mass (kg)
 rg = [0.2 0]';    % CG for hull only (m)
 Gy_yaw = 0.25 * L;     % radii of gyrations (m)
 
@@ -43,8 +43,8 @@ y_pont  = 0.395;    % distance from centerline to waterline area center (m)
 Cb_pont = 0.4;      % block coefficient, computed from m = 55 kg
 
 % Propeller
-Propeller.R = 0.03;
-Propeller.C = 0.01;
+Propeller.R = 0.1;
+Propeller.C = 0.05;
 Propeller.angle = pi/8;
 Propeller.blades = 3;
 Propeller.K = rho/2*pi*Propeller.R*Propeller.C*Propeller.blades;
@@ -83,10 +83,10 @@ C = [ 0             0            -M(2,2)*nu(2)-M(2,3)*nu(3)
         0             0             M(1,1)*nu(1)
         M(2,2)*nu(2)+M(2,3)*nu(3)  -M(1,1)*nu(1)   0              ];
     
-D = [1 0 0;
-    0 1 0.1;
-    0 0.1 1];
-D = D*100;
+D = [10 0 0;
+    0 100 1;
+    0 1 100];
+
 
 % Propeller forces and moments
 n = Input.prop.velo;

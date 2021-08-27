@@ -4,6 +4,7 @@ function fig = niceplot(time,series, names, title_in, style, axisnames, position
 
 Nseries = size(series,1);
 fontsize = 26;
+Monitor = 1;
 
 if nargin<3
   names = "series "+string(1:1:Nseries);
@@ -38,8 +39,12 @@ elseif size(names,2) ~= Nseries
     error("Incorrect number of names for legend");
 end 
 
-ScreenSize = get(0, 'ScreenSize');
-fig = figure('Name',title0,'DefaultAxesFontSize',fontsize,'OuterPosition',[0 0 ScreenSize(3)/3 ScreenSize(4)/2]);
+MonitorPositions = get(0, 'MonitorPositions');
+if (Monitor > size(MonitorPositions,1)), warning("You dont have "+Monitor+" monitors, using primary"), Monitor = size(MonitorPositions,1); end
+MonitorPositions(:,3) = MonitorPositions(:,3)/3;
+MonitorPositions(:,4) = MonitorPositions(:,4)/2;
+
+fig = figure('Name',title0,'DefaultAxesFontSize',fontsize,'OuterPosition',MonitorPositions(Monitor,:));
 
 if ~isempty(title_in)
     %title(title0, 'Interpreter','latex');
@@ -61,6 +66,7 @@ if ~isempty(names)
     % lgd.NumColumns = 2;
     lgd.FontSize = fontsize;
 end
+
 movegui(fig,position);
 
 end

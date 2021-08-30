@@ -16,9 +16,9 @@ State.prop.xi   = [0; 0];           % xi = [ port starboard ]'
 State.mp = 0;                       % payload mass (kg)
 State.rp = [0 0]';                % location of payload (m)
 State.V_c = 0;                      % current speed (m/s)
-State.current.v = 0;                      % current speed (m/s)
+State.current.v = 0.2;                      % current speed (m/s)
 State.beta_c = 0;                   % current direction (rad);
-State.current.beta = 0;                   % current direction (rad);
+State.current.beta = pi/2;                   % current direction (rad);
 
 % Init History
 % History.Pos = zeros(6,N);
@@ -27,11 +27,13 @@ State.current.beta = 0;                   % current direction (rad);
 %% Main Loop
 % Idle
 %      thrust_seq = makeref([0; 0; 0; 0], N);
+% Slow
+%      thrust_seq = makeref([10; 10; 0; 0], N);   
 % Full - Break - Full
-     %thrust_seq = makeref([30 0 30; 30 0 30; 0 0 0 ; 0 0 0], N/3);
+%      thrust_seq = makeref([30 0 30; 30 0 30; 0 0 0 ; 0 0 0], N/3);
 % S-Line
 %     thrust_seq = makeref([30 30 20 30; 30 20 30 30; 0 0 0 0; 0 0 0 0], N/4);
-% large circle
+% Large circle
     thrust_seq = makeref([30; 25; 0; 0], N);
 % Port Thruster half rotation
     %thrust_seq = makeref([20 20 20 20 20; 0 0 0 0 0 ; 0 pi/4 pi/2 3*pi/4 pi; 0 0 0 0 0], N/5);
@@ -47,7 +49,7 @@ for i = 1:N
     State.prop.xi = thrust_seq(3:4,i);
     [x, info] = ferry3(State);
     State.x = State.x + Ts * x;
-    State.x(6) = wrapToPi(State.x(6))
+    State.x(6) = wrapToPi(State.x(6));
     T = [T t];
     History.Velo(:,i) = State.x(1:3);
     History.Pos(:,i) = State.x(4:6);

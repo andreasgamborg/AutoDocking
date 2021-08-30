@@ -33,13 +33,13 @@ g   = 9.81;         % acceleration of gravity (m/s^2)
 rho = 1025;         % density of water (kg/m^3)
 L = 6.0;            % length (m)
 B = 2.0;            % beam (m)
-m = 60.0;         % mass (kg)
-rg = [0.2 0]';    % CG for hull only (m)
-Gy_yaw = 0.25 * L;     % radii of gyrations (m)
+m = 200.0;          % mass (kg)
+rg = [0.2 0]';      % CG for hull only (m)
+Gy_yaw = 0.25 * L;  % radii of gyrations (m)
 
 % Data for one pontoon
-B_pont  = 0.25;     % beam of one pontoon (m)
-y_pont  = 0.395;    % distance from centerline to waterline area center (m)
+B_pont  = 0.3;     % beam of one pontoon (m)
+y_pont  = 0.3;    % distance from centerline to waterline area center (m)
 Cb_pont = 0.4;      % block coefficient, computed from m = 55 kg
 
 % Propeller
@@ -62,11 +62,7 @@ v_c = Input.current.v * sin(Input.current.beta - pos(3));           % current sw
 nu_r = nu - [u_c v_c 0]';             % relative velocity vector
 
 % Inertia dyadic, volume displacement and draft
-nabla = (m+Input.mp)/rho;                                 % water displacement volume (m^3)
-T = nabla / (2 * Cb_pont * B_pont*L);               % draft
-Ig_CG = m * Gy_yaw^2;            % only hull in CG
-rg = (m*rg + Input.mp*Input.rp)/(m+Input.mp);                         % CG location corrected for payload
-Ig = Ig_CG + Input.mp*norm(rg-Input.rp);
+Iz = m * Gy_yaw^2;                                  % only hull in CG
 
 % Propeller data
 l1 = [-L*0.4;-y_pont];                  % position of port propeller (m)
@@ -76,16 +72,18 @@ n_min = -60;                            % minimum propeller rev. (rad/s)
 
 
 % Rigid Body kinetics
-M = [ (m+Input.mp) * eye(2)  zeros(2,1)
-            zeros(1,2)           Ig ];
-        
-C = [ 0             0            -M(2,2)*nu(2)-M(2,3)*nu(3)
-        0             0             M(1,1)*nu(1)
-        M(2,2)*nu(2)+M(2,3)*nu(3)  -M(1,1)*nu(1)   0              ];
+M = [   m       0       0
+        0       m       m*rg(1)
+        0       m*rg(1) Iz      ];
     
-D = [10 0 0;
-    0 100 1;
-    0 1 100];
+Cvr = m*(rg(1)*nu(3)+nu(2));
+C = [   0       0      -Cvr
+        0       0       m*nu(1)
+        Cvr    -m*nu(1) 0       ];
+    
+D = [   10      0       0
+        0       100     1
+        0       1       100     ];
 
 
 % Propeller forces and moments
@@ -114,14 +112,13 @@ tau = [sum(tau1,2); tau2];
 
 
 % Kinematics
-
 psi = Input.x(6);
 R = [   cos(psi)   -sin(psi)    0
         sin(psi)    cos(psi)    0
         0           0           1 ];
 
-% Time derivative of the state vector - numerical integration; see ExOtter.m
-nudot = M \ ( tau - C * nu_r - D * nu_r);
+% Time derivative of the state vector
+nudot = M \ ( tau - C * nu - D * nu_r);
 etadot = R * nu ;
 xdot = [nudot; etadot];
 end

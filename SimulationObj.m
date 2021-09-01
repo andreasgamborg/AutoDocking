@@ -11,7 +11,8 @@ T = [];
 
 % Init State
 F = Ferry3;
-%% Main Loop
+O = Otter6;
+%% Manuel Thruster Values
 % Idle
 %      thrust_seq = makeref([0; 0; 0; 0], N);
 % Slow
@@ -23,21 +24,23 @@ F = Ferry3;
 % Large circle
     thrust_seq = makeref([30; 25; 0; 0], N);
 % Port Thruster half rotation
-    %thrust_seq = makeref([20 20 20 20 20; 0 0 0 0 0 ; 0 pi/4 pi/2 3*pi/4 pi; 0 0 0 0 0], N/5);
+%     thrust_seq = makeref([20 20 20 20 20; 0 0 0 0 0 ; 0 pi/4 pi/2 3*pi/4 pi; 0 0 0 0 0], N/5);
 % Starbord Thruster half rotation
     %thrust_seq = makeref([0 0 0 0 0; 20 20 20 20 20 ; 0 0 0 0 0; 0 -pi/4 -pi/2 -3*pi/4 -pi], N/5);
 % Slalom by use of thruster angle
 %     a = 12;
 %     thrust_seq = makeref([20 20 20 20 20; 20 20 20 20 20 ; 0 -pi/a pi/a -pi/a pi/a; 0 -pi/a pi/a -pi/a pi/a], N/5);
     
+%% Main Loop
+Vessel = O
 disp('Running Simulation...')
 for i = 1:N
-    F.updateProp(thrust_seq(1:2,i), thrust_seq(3:4,i))
-    F.step(Ts)
+    Vessel.setProp(thrust_seq(1:2,i), thrust_seq(3:4,i));
+    Vessel.step(Ts);
     T = [T t];
     t = t+Ts;
 end
 disp('Simulation done!')
 
-History = F.History;
-Plots3
+History = Vessel.History;
+Plots

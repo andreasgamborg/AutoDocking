@@ -4,13 +4,13 @@
 \usepackage[T1]{fontenc}
 \usepackage{geometry}
 \usepackage{float}
- \geometry{
- a4paper,
- left=20mm,
- right=20mm,
- top=20mm,
- bottom=20mm,
- }
+\geometry{
+	a4paper,
+	left=20mm,
+	right=20mm,
+	top=20mm,
+	bottom=20mm,
+}
 % Useful packages
 \usepackage{amsmath}
 \usepackage{graphicx}
@@ -20,38 +20,38 @@
 
 \section{Kinematics}
 \begin{equation}
-    M \dot{\nu} + C(\nu)\nu + D(\nu)\nu + g(\eta) + g_0 = \tau
+	M \dot{\nu} + C(\nu)\nu + D(\nu)\nu + g(\eta) + g_0 = \tau
 \end{equation}
 \begin{align*}
-    M  = M_{RB} + M_A   \\
-    C  = C_{RB} + C_A
+	M  = M_{RB} + M_A \\
+	C  = C_{RB} + C_A
 \end{align*}
 
 \begin{equation}
-    \tau = \tau_{hydrodynamics}+\tau_{hydrostatics}+\tau_{wind}+\tau_{wave}+\tau_{control}
+	\tau = \tau_{hydrodynamics}+\tau_{hydrostatics}+\tau_{wind}+\tau_{wave}+\tau_{control}
 \end{equation}
 
 
 \subsection{Control}
 \begin{equation}
-    \tau_{control} = \begin{bmatrix}
-    \tau_{control,linear}\\
-    \tau_{control,torque}
-    \end{bmatrix}
+	\tau_{control} = \begin{bmatrix}
+		\tau_{control,linear} \\
+		\tau_{control,torque}
+	\end{bmatrix}
 \end{equation}
 
 Each propeller can rotate with an angle $\xi_p$. The thrust of each propeller can be describe as a vector by spilting it into components that align with the ship coordinate frame
 \begin{equation}
-    T_p = \begin{bmatrix} \cos(\xi_p)\\ \sin(\xi_p)\\ 0 \end{bmatrix} t_p
+	T_p = \begin{bmatrix} \cos(\xi_p)\\ \sin(\xi_p)\\ 0 \end{bmatrix} t_p
 \end{equation}
 where $t_p$ is the magnitude of the thrust and $T_p$ is the thrust vector.
 The linear control force is found as the sum of forces from each propeller p.
 \begin{equation}
-    \tau_{control,linear} = \sum^P T_p
+	\tau_{control,linear} = \sum^P T_p
 \end{equation}
 
 \begin{equation}
-    \tau_{control,torque} = \sum^P  r_p \times T_p = \sum^P S(r_p) T_p
+	\tau_{control,torque} = \sum^P  r_p \times T_p = \sum^P S(r_p) T_p
 \end{equation}
 where $r_p$ is the position vector of thruster \textit{p} and $S(r_p)$ is the skew-symetric matrix of vector $r_p$.
 \end{document}

@@ -1,0 +1,235 @@
+\documentclass[12pt,a4]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{
+	a4paper,
+	left=20mm,
+	right=20mm,
+	top=20mm,
+	bottom=20mm,
+}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\begin{document}
+\section{Constants and Dimensions}
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{l|lcl}
+		Symbol      & Value                           & Unit             & Description                                       \\\hline
+		$g$         & $9.81$                          & $\frac{m}{s^2}$  & acceleration of gravity                           \\
+		$\rho$      & $1025$                          & $\frac{kg}{m^3}$ & density of water                                  \\
+		$L$         & $ 2.0 $                         & $m$              & length of hull                                    \\
+		$B$         & $ 1.08 $                        & $m$              & beam of hull                                      \\
+		$m$         & $ 55.0 $                        & $ kg $           & mass of hull                                      \\\hline
+		$rg$        & $ \begin{bmatrix}0.2&0&-0.2\end{bmatrix}^T $ & $ m$             & CG of hull                                        \\
+		$R_{44} $   & $0.4 \cdot B$                   & $m$              & radii of gyrations                                \\
+		$R_{55} $   & $0.25\cdot L$                   & $m$              & radii of gyrations                                \\
+		$R_{66} $   & $0.25\cdot L$                   & $m$              & radii of gyrations                                \\
+		$T_{yaw}$   & $ 1$                            & $s $             & time constant in yaw                              \\
+		$U_{max}$   & $ 6 $                           & $ knot $         & max forward speed                                 \\\hline
+		$B_{pont} $ & $0.25 $                         & $ m $            & beam of one pontoon                               \\
+		$y_{pont} $ & $0.395$                         & $ m $            & distance from centerline to waterline area center \\
+		$Cw_{pont}$ & $0.75 $                         & $ - $            & waterline area coefficient                        \\
+		$Cb_{pont}$ & $0.4$                           & $ - $            & block coefficient                                 \\
+		$ $         & $ $                             & $  $             &                                                   \\
+	\end{tabular}
+\end{table}
+
+Waterline area of one pontoon
+\begin{equation}
+	Aw_{pont} = Cw_{pont} L B_{pont}
+\end{equation}
+
+\section{Skew symetric matrix}
+
+\begin{equation}
+	S\left(\begin{bmatrix}a_1\\a_2\\a_3\end{bmatrix}\right) =
+	\begin{bmatrix}
+		0    & -a_3 & a_2  \\
+		a_3  & 0    & -a_1 \\
+		-a_2 & a_1  & 0
+	\end{bmatrix}
+\end{equation}
+
+
+\section{Kinetics}
+\begin{align}
+	\nu_1 & = \begin{bmatrix}u & v & w\end{bmatrix}^T & \nu_2 & = \begin{bmatrix}p & q & r\end{bmatrix}^T
+\end{align}
+\begin{align}
+	M_{RB}^{CG}               & =
+	\begin{bmatrix}
+		(m+m_p)I & 0   \\
+		0        & I_g
+	\end{bmatrix} &
+	C_{RB}^{CG}               & =
+	\begin{bmatrix}
+		(m+m_p) S(\nu_2) & 0             \\
+		0                & -S(I_g \nu_2)
+	\end{bmatrix}
+\end{align}
+
+
+
+Transform $M_{RB}$ and $C_{RB}$ from the $C_G$ to the $C_O$
+\begin{equation}
+	H = \begin{bmatrix} I & S(rg)^T\\ 0  & I \end{bmatrix}
+\end{equation}
+
+\begin{align}
+	M_{RB} & = H^T M_{RB}^{CG} H \\
+	C_{RB} & = H^T C_{RB}^{CG} H \\
+\end{align}
+
+\section{Hydrodynamics}
+Hydrodynamic added mass
+
+\begin{equation}
+	M_A =
+	\begin{bmatrix}
+		0.1 * m & 0       & 0       & 0             & 0             & 0             \\
+		0       & 1.5 * m & 0       & 0             & 0             & 0             \\
+		0       & 0       & 1.0 * m & 0             & 0             & 0             \\
+		0       & 0       & 0       & 0.2 * Ig(1,1) & 0             & 0             \\
+		0       & 0       & 0       & 0             & 0.8 * Ig(2,2) & 0             \\
+		0       & 0       & 0       & 0             & 0             & 1.7 * Ig(3,3)
+	\end{bmatrix}
+\end{equation}
+
+
+\begin{equation}
+	C_A = \begin{bmatrix}
+		0                                         & -S(M_{A,11}\nu_{r,1} + M_{A,12}\nu_{r,2}) \\
+		-S(M_{A,11}\nu_{r,1} + M_{A,12}\nu_{r,2}) & -S(M_{A,21}\nu_{r,1} + M_{A,22}\nu_{r,2})
+	\end{bmatrix}
+\end{equation}
+
+System mass and Coriolis-centripetal matrices
+\begin{align}
+	M & = M_{RB} + M_A \\
+	C & = C_{RB} + C_A
+\end{align}
+
+
+\section{Hydro statics}
+Water volume displacement
+\begin{equation}
+	\nabla = \frac{m+m_p}{\rho}
+\end{equation}
+Draft
+\begin{equation}
+	T = \frac{\nabla}{2 Cb_{pont} B_{pont} L}     % draft
+\end{equation}
+
+\begin{equation}
+	KB = \frac{1}{3}(5\frac{T}{2} - \frac{\nabla}{2 L B_{pont}});
+\end{equation}
+
+\begin{align}
+	I_T & = \frac{2}{12} L B_{pont}^3 \frac{6\cdot Cw_{pont}^3}{(1+Cw_{pont})(1+2Cw_{pont})} + 2 * Aw_{pont} y_{pont}^2 \\
+	I_L & = \frac{0.8\cdot 2}{12}  B_{pont}  L^3
+\end{align}
+
+\begin{align}
+	GM_T & = KB + \frac{I_T}{\nabla} - T + rg_z  \\
+	GM_L & = KB + \frac{I_L}{\nabla}  - T + rg_z \\
+\end{align}
+
+
+\begin{equation}
+	G_{CF} = \begin{bmatrix}
+		0 & 0 & 0                       & 0                    & 0                   & 0 \\
+		0 & 0 & 0                       & 0                    & 0                   & 0 \\
+		0 & 0 & \rho  g  (2  Aw_{pont}) & 0                    & 0                   & 0 \\
+		0 & 0 & 0                       & \rho  g \nabla  GM_T & 0                   & 0 \\
+		0 & 0 & 0                       & 0                    & \rho  g \nabla GM_L & 0 \\
+		0 & 0 & 0                       & 0                    & 0                   & 0
+	\end{bmatrix}
+\end{equation}
+
+
+
+%LCF = -0.2;
+%H = Hmtrx([LCF 0 0]);               % transform G_CF from the CF to the CO
+
+\begin{equation}
+	G = H^T  G_{CF}  H;
+\end{equation}
+
+% Natural frequencies
+\begin{align}
+	\omega_3 & = \sqrt{G_{33}/M_{33}} \\
+	\omega_4 & = \sqrt{G_{44}/M_{44}} \\
+	\omega_5 & = \sqrt{G_{55}/M_{55}}
+\end{align}
+
+\section{Linear Damping}
+\begin{equation}
+	h =
+	\begin{bmatrix}
+		-24.4 \frac{g}{U_{max}}             \\
+		0                                   \\
+		-2 \cdot 0.3 \cdot \omega_3  M_{33} \\
+		-2 \cdot 0.2 \cdot \omega_4  M_{44} \\
+		-2 \cdot 0.4 \cdot \omega_5  M_{55} \\
+		\frac{-M_{66}}{T_{yaw}}
+	\end{bmatrix} + \begin{bmatrix}0\\0\\0\\0\\0\\  \frac{-M_{66}}{T_{yaw}} 10 abs(r)\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	\tau_{damp} = h \cdot \nu_r
+\end{equation}
+
+\section{Transformation}
+\begin{equation}
+	R = R_z R_y R_x =
+	\begin{bmatrix}
+		\cos(\phi) & -\sin(\phi) & 0 \\
+		\sin(\phi) & \cos(\phi)  & 0 \\
+		0          & 0           & 1
+	\end{bmatrix}
+	\begin{bmatrix}
+		\cos(\theta)  & 0 & \sin(\theta) \\
+		0             & 1 & 0            \\
+		-\sin(\theta) &   & \cos(\theta)
+	\end{bmatrix}
+	\begin{bmatrix}
+		1 & 0          & 0           \\
+		0 & \cos(\phi) & -\sin(\phi) \\
+		0 & \sin(\phi) & \cos(\phi)
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	T =
+	\begin{bmatrix}
+		1 & \sin(\phi)\tan(\theta)           & \cos(\phi)\tan(\theta)           \\
+		0 & \cos(\phi)                       & -\sin(\phi)                      \\
+		0 & \dfrac{\sin(\phi)}{\cos(\theta)} & \dfrac{\cos(\phi)}{\cos(\theta)}
+	\end{bmatrix}
+\end{equation}
+
+\begin{equation}
+	J = \begin{bmatrix}
+		R & 0 \\
+		0 & T
+	\end{bmatrix}
+\end{equation}
+
+\section{State derivative}
+\begin{equation}
+	\dot{x} =
+	\begin{bmatrix}
+		\dfrac{M}{\tau + \tau_{damp} + \tau_{cf} - C  \nu_r - G  \eta - g_0} \\
+		J \nu
+	\end{bmatrix}
+\end{equation}
+
+\end{document}

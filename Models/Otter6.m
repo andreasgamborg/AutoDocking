@@ -198,6 +198,53 @@ classdef Otter6 < Vessel
             O.History.Pos(:,O.t) = O.State(7:12);
             O.History.Propeller(:,O.t) = [O.Prop.xi; O.Prop.n; O.Prop.Thrust];
         end
+        function plot(O, T)
+            title = 'Course';
+            niceplot(O.History.Pos(1,:),O.History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'north');
+            axis equal
+            grid
+            set(gca, 'YDir','reverse')
+            
+            color = 'g-';
+            for i = [1:1000:O.t, O.t]
+                
+                vessel = vesselplot(O.History.Pos(6,i),O.History.Propeller(1:2,i));
+                
+                if i == O.t
+                    color = 'r-';
+                end
+                
+                plot(vessel(1,:)+O.History.Pos(1,i), vessel(2,:)+O.History.Pos(2,i), color, 'LineWidth', 2);
+                
+                color = 'b-';
+            end
+            
+            
+            title = 'Linear Velocities';
+            names = ["$u$ surge", "$v$ sway", "$w$ heave"];
+            niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["--"], ["time [s]", "[knot]"], 'northeast');
+            
+            title = 'Orientation';
+            names = ["$\phi$ roll", "$\theta$ pitch", "$\psi$ yaw"];
+            niceplot(T,rad2deg(O.History.Pos(4:6,:)), names, title, ["--"], ["time [s]", ""], 'south');
+            yticks(-180:30:180)
+            tl = [180:30:359 0:30:180]+"°"; tl(7) = "N"; tl(10) = "E"; tl([1,13]) = "S"; tl(4) = "W";
+            yticklabels(tl)
+            
+            
+            title = 'Angular Velocities';
+            names = ["$p$ roll", "$q$ pitch", "$r$ yaw"];
+            niceplot(T, rad2deg(O.History.Velo(4:6,:)*60), names, title, ["--"], ["time [s]", "[deg/min]"], 'southeast');
+            ytickformat('%.0f°')
+            
+            title = 'Propeller velocity';
+            names = ["P", "SB"];
+            niceplot(T, toRPM(O.History.Propeller(3:4,:)), names, title, ["-"], ["time [s]", "[rpm]"], 'northwest');
+            
+            title = 'Propeller Thrust';
+            names = ["P", "SB"];
+            niceplot(T, O.History.Propeller(5:6,:), names, title, ["r-","g--"], ["time [s]", "[N]"], 'southwest');
+        end
     end
 end
 

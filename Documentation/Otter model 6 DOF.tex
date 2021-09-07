@@ -262,8 +262,8 @@ $g_0$ represents a dynamic torque in \textit{q} (pitch)
 \begin{equation}
 	R = R_z R_y R_x =
 	\begin{bmatrix}
-		\cos(\phi) & -\sin(\phi) & 0 \\
-		\sin(\phi) & \cos(\phi)  & 0 \\
+		\cos(\psi) & -\sin(\psi) & 0 \\
+		\sin(\psi) & \cos(\psi)  & 0 \\
 		0          & 0           & 1
 	\end{bmatrix}
 	\begin{bmatrix}
@@ -295,21 +295,23 @@ $g_0$ represents a dynamic torque in \textit{q} (pitch)
 \end{equation}
 
 \section{State derivative}
-\begin{equation}
-	M \dot{\nu} + C \nu_r + G \eta + g_0 = \tau + \tau_{damp} + \tau_{cf}
-\end{equation}
+\begin{align}
+	M \dot{\nu} + C \nu_r + G \eta + g_0 & = \tau + \tau_{damp} + \tau_{cf} \\
+	\dot{\eta}                           & = J(\eta)\nu
+\end{align}
+
 \begin{equation}
 	\dot{x} =
 	\begin{bmatrix}\dot{\nu}\\\dot{\eta}\end{bmatrix}
 	=
 	\begin{bmatrix}
-		M^{-1}(\tau + \tau_{damp} + \tau_{cf} - C  \nu_r - G  \eta - g_0) \\
+		M^{-1}(\tau + \tau_{damp}(r) + \tau_{cf}(\nu_r) - C  \nu_r - G  \eta - g_0) \\
 		J \nu
 	\end{bmatrix}
 \end{equation}
 
 
-\begin{align}
+\begin{align*}
 	M & = H^T M_{RB}^{CG} H + M_A \\
 	  & =
 	\begin{bmatrix} I & 0 \\ S(r_g)  & I \end{bmatrix}
@@ -336,9 +338,9 @@ $g_0$ represents a dynamic torque in \textit{q} (pitch)
 		0  & I_g
 	\end{bmatrix}
 	M_{A,coef}
-\end{align}
+\end{align*}
 
-\begin{align}
+\begin{align*}
 	C & = H^T C_{RB}^{CG}(\nu_2) H  + C_A(\nu_{r,1},\nu_{r,2}) \\
 	  & =
 	\begin{bmatrix} I & 0 \\ S(r_g)  & I \end{bmatrix}
@@ -363,6 +365,6 @@ $g_0$ represents a dynamic torque in \textit{q} (pitch)
 		0                        & -S(0.1 \cdot m\nu_{r,1}) \\
 		-S(0.1 \cdot m\nu_{r,1}) & -S(1.5 \cdot m\nu_{r,2})
 	\end{bmatrix}
-\end{align}
+\end{align*}
 
 \end{document}

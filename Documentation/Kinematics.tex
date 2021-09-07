@@ -54,4 +54,9 @@ The linear control force is found as the sum of forces from each propeller p.
 	\tau_{control,torque} = \sum^P  r_p \times T_p = \sum^P S(r_p) T_p
 \end{equation}
 where $r_p$ is the position vector of thruster \textit{p} and $S(r_p)$ is the skew-symetric matrix of vector $r_p$.
+
+In the case of two propellers we have
+\begin{equation}
+	\tau_{control} = \begin{bmatrix} I & I \\ S(r_1) & S(r_2) \end{bmatrix}\begin{bmatrix} T_1 \\ T_2 \end{bmatrix}
+\end{equation}
 \end{document}

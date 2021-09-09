@@ -1,0 +1,118 @@
+\documentclass[12pt,a4]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{
+	a4paper,
+	left=20mm,
+	right=20mm,
+	top=20mm,
+	bottom=20mm,
+}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\begin{document}
+
+\section{Mass- and Coriolis matrices of the 6 DOF model}
+In the case of no payload and no current we have
+
+\begin{equation*}
+	M_{RB} = \left[\begin{array}{cccccc} 55 & 0 & 0 & 0 & -11 & 0\\ 0 & 55 & 0 & 11 & 0 & 11\\ 0 & 0 & 55 & 0 & -11 & 0\\ 0 & 11 & 0 & 14.6643 & 0 & 4.4000\\ -11 & 0 & -11 & 0 & 22.5500 & 0\\ 0 & 11 & 0 & 4.4000 & 0 & 18.1500 \end{array}\right]
+\end{equation*}
+\begin{align*}
+	 & C_{RB} =                               \\
+	 & \left[\begin{array}{cccccc} 0 & -55\,r & 55\,q & -11\,r & -11\,q & -11\,r\\ 55\,r & 0 & -55\,p & 0 & 11\,p-11\,r & 0\\ -55\,q & 55\,p & 0 & 11\,p & 11\,q & 11\,p\\ 11\,r & 0 & -11\,p & 0 & 4.4000\,p+13.7500\,r & -18.1500\,q\\ 11\,q & 11\,r-11\,p & -11\,q & -4.4000\,p-13.7500\,r & 0 & 10.2643\,p+4.4000\,r\\ 11\,r & 0 & -11\,p & 18.1500\,q & -10.2643\,p-4.4000\,r & 0 \end{array}\right]
+\end{align*}
+\begin{equation*}
+	M_{A} = \left[\begin{array}{cccccc} 5.5000 & 0 & 0 & 0 & 0 & 0\\ 0 & 82.5000 & 0 & 0 & 0 & 0\\ 0 & 0 & 55 & 0 & 0 & 0\\ 0 & 0 & 0 & 2.4929 & 0 & 0\\ 0 & 0 & 0 & 0 & 14.5200 & 0\\ 0 & 0 & 0 & 0 & 0 & 27.1150 \end{array}\right]
+\end{equation*}
+\begin{equation*}
+	C_{A} = \left[\begin{array}{cccccc} 0 & 0 & 0 & 0 & 55\,w & -82.5000\,v\\ 0 & 0 & 0 & -55\,w & 0 & 5.5000\,u\\ 0 & 0 & 0 & 82.5000\,v & -5.5000\,u & 0\\ 0 & 55\,w & -82.5000\,v & 0 & 27.1150\,r & -14.5200\,q\\ -55\,w & 0 & 5.5000\,u & -27.1150\,r & 0 & 2.4929\,p\\ 0 & 0 & 0 & 14.5200\,q & -2.4929\,p & 0 \end{array}\right]
+\end{equation*}
+\begin{equation*}
+	D = \left[\begin{array}{cccccc} 77.5544\,u & 0 & 0 & 0 & 0 & 0\\ 0 & 0 & 0 & 0 & 0 & 0\\ 0 & 0 & 546.4805\,w & 0 & 0 & 0\\ 0 & 0 & 0 & 54.3823\,p & 0 & 0\\ 0 & 0 & 0 & 0 & 246.0496\,q & 0\\ 0 & 0 & 0 & 0 & 0 & r\,\left(452.6500\,\left|r\right|+45.2650\right) \end{array}\right]
+\end{equation*}
+
+\section{Simple state truncation}
+\begin{equation*}
+	\dot{\nu} = A \nu + B \tau
+\end{equation*}
+\begin{align*}
+	 & A =  -(M_{RB} + M_A)^{-1}(C_{RB}+C_A+D)= \\
+	 & \left[\begin{array}{ccc} 0.2944\,w-1.3574\,u-0.0294\,q & 0.0294\,p+0.9037\,r & 0.1690\,r-0.0742\,p+1.4439\,v\\ -0.3601\,r & 0.2532\,w & 0.0651\,r-0.1504\,q-0.0427\,u+0.6506\,r\,\left|r\right|\\ -0.1186\,r & 0.2726\,w & 0.0079\,u-1.0376\,r-0.1620\,q-10.3762\,r\,\left|r\right| \end{array}\right]
+\end{align*}
+\begin{align*}
+	 & B = (M_{RB} + M_A)^{-1}=               \\
+	 & \left[\begin{array}{ccc} 0.0175 & 0 & 0\\ 0 & 0.0078 & -0.0014\\ 0 & -0.0014 & 0.0229 \end{array}\right]
+\end{align*}
+where the heave, roll and pitch dimensions has been removed from \textit{A} and \textit{B}
+
+\subsection{Reduction}
+
+Assiming that
+
+\begin{align*}
+	w & = 0 \\
+	p & = 0 \\
+	q & = 0
+\end{align*}
+The system equations simplify to
+
+\begin{equation}
+	A(u,v,r) = \left[\begin{array}{ccc} -1.3574\,u & 0.9037\,r & 0.1690\,r+1.4439\,v\\ -0.3601\,r & 0 & 0.0651\,r-0.0427\,u+0.6506\,r\,\left|r\right|\\ -0.1186\,r & 0 & 0.0079\,u-1.0376\,r-10.3762\,r\,\left|r\right| \end{array}\right]
+\end{equation}
+\begin{equation}
+	B = \left[\begin{array}{ccc} 0.0175 & 0 & 0\\ 0 & 0.0078 & -0.0014\\ 0 & -0.0014 & 0.0229 \end{array}\right]
+\end{equation}
+
+
+\section{Selection matrix approch}
+
+\begin{align}
+	C^*_{RB} & = UM_{RB}L
+	         &
+	C^*_{A}  & = UM_AL
+\end{align}
+Where \textit{U} is the surge of the vessel at the linarization point and L is a selection matrix seen in HMCHMC (3.63).
+For this lineariztion $U=3$
+\begin{align}
+	M_{RB} & = \left[\begin{array}{ccc} 55 & 0 & 0\\ 0 & 55 & 11\\ 0 & 11 & 18.1500 \end{array}\right]
+	       &
+	M_{A}  & = \left[\begin{array}{ccc} 5.5000 & 0 & 0\\ 0 & 82.5000 & 0\\ 0 & 0 & 27.1150 \end{array}\right]
+\end{align}
+
+\begin{align}
+	C^*_{RB} & = \left[\begin{array}{ccc} 0 & 0 & 0\\ 0 & 0 & 165\\ 0 & 0 & 33 \end{array}\right]
+	         &
+	C^*_{A}  & = \left[\begin{array}{ccc} 0 & 0 & 0\\ 0 & 0 & 247.5000\\ 0 & 0 & 0 \end{array}\right]
+\end{align}
+\begin{equation}
+	D^* = \left[\begin{array}{ccc} 232.6633 & 0 & 0\\ 0 & 0 & 0\\ 0 & 0 & 497.9150 \end{array}\right]
+\end{equation}
+$D*$ has been linearized in yaw around the point $r = 1$
+
+\begin{equation}
+	\dot{\nu} = A \nu + B \tau
+\end{equation}
+
+\begin{align}
+	M & = M_{RB} + M_A           \\
+	N & = C^*_{RB} + C^*_{A} + D \\
+	A & = -M^{-1}N               \\
+	B & = M^{-1}
+\end{align}
+
+\begin{align}
+	A & = \left[\begin{array}{ccc} -3.8457 & 0 & 0\\ 0 & 0 & -2.1026\\ 0 & 0 & -11.2181 \end{array}\right]
+	  &
+	B & = \left[\begin{array}{ccc} 0.0165 & 0 & 0\\ 0 & 0.0074 & -0.0018\\ 0 & -0.0018 & 0.0225 \end{array}\right]
+\end{align}
+
+
+
+\end{document}

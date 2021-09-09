@@ -6,3 +6,5 @@ clc
 addpath('My tools/')
 addpath('Mss tools/')
 addpath('Models/')
+addpath('Models/Primitive')
+addpath('Experiments/')

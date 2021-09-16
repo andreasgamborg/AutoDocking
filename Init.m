@@ -3,8 +3,7 @@ close all
 clear all
 clc
 %% Path
-addpath('My tools/')
-addpath('Mss tools/')
-addpath('Models/')
-addpath('Models/Primitive')
-addpath('Experiments/')
+addpath(genpath('Tools/'))
+addpath(genpath('Models/'))
+addpath(genpath('Experiments/'))
+addpath(genpath('ModelReduction/'))

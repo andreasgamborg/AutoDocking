@@ -4,7 +4,7 @@ function latexeq(left,right)
 sympref('FloatingPointOutput',true);
 sympref('MatrixWithSquareBrackets',true);
 
-l = latex(simplify(sym(right)));
+l = latex(sym(right));
 eq = left + " = " + l;
 
 formatSpec = "\\begin{equation}\r \t%s \r\\end{equation}";

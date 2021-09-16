@@ -13,7 +13,8 @@ idx = [1 2 6];
 CRB_lin = U*MRB*L;
 CA_lin = U*MA*L;
 syms u v r
-D = subs(D,[u, v, r],[U, 0, 1]); % r = 1
+%D = subs(D,[u, v, r],[U, 0, 1]); % r = 1
+D = subs(D,[u],[U]); % r = 1
 
 M = MRB(idx,idx) + MA(idx,idx);
 N = CRB_lin(idx,idx) + CA_lin(idx,idx) + eval(D(idx,idx));

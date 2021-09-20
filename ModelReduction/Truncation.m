@@ -3,14 +3,6 @@ load('Models/Primitive/otter6mtrx.mat')
 
 syms u v w p q r x y z phi theta psi    real
 x = [u v w p q r x y z phi theta psi]';
-%%
-if(0)           %<-- Switch
-    latexeq("M_{RB}",MRB)
-    latexeq("C_{RB}",CRB)
-    latexeq("M_{A}",MA)
-    latexeq("C_{A}",CA)
-    latexeq("D",D)
-end
 
 %% System Equations
 M = MRB + MA;

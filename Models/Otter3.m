@@ -19,7 +19,7 @@ classdef Otter3 < Vessel
                 Payload.r = [0;0;0];
             end
             O = O@Vessel(State,Payload);
-            load('Models/Primitive/otter3linmtrx.mat')
+            load('Models/Primitive/otter3mtrx.mat')
             O.A = A;
             O.B = B;
         end

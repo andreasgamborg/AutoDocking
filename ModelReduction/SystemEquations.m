@@ -17,28 +17,46 @@ B6 = inv(M);
 dnu = A6*nu + B6*tau;
 dnu = simplify(dnu);
 
-if(1)           %<-- Switch
-    names = ["\dot{u}","\dot{v}","\dot{w}","\dot{p}","\dot{q}","\dot{r}"]
+if(0)           %<-- Print Switch
+    names = ["\dot{u}","\dot{v}","\dot{w}","\dot{p}","\dot{q}","\dot{r}"];
     for it = 1:6
         latexeq(names(it),dnu(it));
     end
 end
 %% Find Jacobian
 idx = [1 2 6];
-A = jacobian(dnu, nu(idx));
-B = jacobian(dnu, tau(idx));
+A = jacobian(dnu, nu);
+B = jacobian(dnu, tau);
 
-%% Truncate
-latexeq("A",A(idx,idx));
-latexeq("B",B(idx,idx));
+%% Print
+if(1)
+    pretty(A(idx,idx))
+    pretty(B(idx,idx))
+else
+    latexeq("A",A(idx,idx));
+    latexeq("B",B(idx,idx));
+end
+
 
 %% Reduction
 w = 0;
 p = 0;
 q = 0;
+% Linearization point
+u = 3;
+v = 0;
+r = 0;
 
 %A = subs(A,[w, p, q],[0, 0, 0]);
 A = eval(A);
+B = eval(B);
 
-latexeq("A",A(idx,idx))
-latexeq("B",B(idx,idx))
+latexeq("A",A(idx,idx));
+latexeq("B",B(idx,idx));
+
+
+S.A = A(idx,idx);
+S.B = B(idx,idx);
+save('Models/Primitive/otter3mtrx.mat','-struct','S')
+
+

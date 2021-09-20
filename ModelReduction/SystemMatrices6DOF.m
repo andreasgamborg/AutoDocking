@@ -14,8 +14,8 @@ rp = [0 0 0]';
 
 %syms V_c beta_c real
 % syms u_c v_c real
-    u_c = 0;
-    v_c = 0;
+u_c = 0;
+v_c = 0;
 
 % trim_setpoint is a step input, which is filtered using the state trim_moment
 syms trim_moment real;
@@ -132,22 +132,10 @@ Kp = -2 * 0.2 *w4 * M(4,4);
 Mq = -2 * 0.4 *w5 * M(5,5);
 Nr = -M(6,6) / T_yaw;            % specified using the time constant in T_yaw
 
-
+% Linear damping using relative velocities + nonlinear yaw damping
+D = -diag([Xu Yv Zw Kp Mq Nr*(1 + 10 * abs(nu_r(6)))]);
 % Control forces and moments
 syms tau tau_crossflow
-
-% Linear damping using relative velocities + nonlinear yaw damping
-Xh = Xu * nu_r(1);
-Yh = Yv * nu_r(2);
-Zh = Zw * nu_r(3);
-Kh = Kp * nu_r(4);
-Mh = Mq * nu_r(5);
-Nh = Nr * (1 + 10 * abs(nu_r(6))) * nu_r(6);
-
-tau_damp = [Xh Yh Zh Kh Mh Nh]';
-
-D = -diag([Xh Yh Zh Kh Mh Nh]);
-
 % Ballast
 g_0 = [0 0 0 0 trim_moment 0]';
 
@@ -158,7 +146,7 @@ J = eulerang(eta(4),eta(5),eta(6));
 % xdot = [ M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta - g_0)
 %          J * nu ]
 
-%% Save 
+%% Save
 S.MRB = MRB;
 S.CRB = CRB;
 S.MA = MA;
@@ -166,3 +154,19 @@ S.CA = CA;
 S.D = D;
 S.G = G;
 save('Models/otter6mtrx.mat','-struct','S')
+
+%% Print
+if(0)           %<--- Console or LaTex
+    pretty(MRB)
+    pretty(CRB)
+    pretty(MA)
+    pretty(CA)
+    pretty(D)
+else
+    latexeq("M_{RB}",MRB)
+    latexeq("C_{RB}",CRB)
+    latexeq("M_{A}",MA)
+    latexeq("C_{A}",CA)
+    latexeq("D",D)
+end
+

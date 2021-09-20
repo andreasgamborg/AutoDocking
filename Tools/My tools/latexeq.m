@@ -7,7 +7,7 @@ sympref('MatrixWithSquareBrackets',true);
 l = latex(sym(right));
 eq = left + " = " + l;
 
-formatSpec = "\\begin{equation}\r \t%s \r\\end{equation}";
+formatSpec = "\\begin{equation*}\r \t%s \r\\end{equation*}";
 
 leq = sprintf(formatSpec,eq);
 

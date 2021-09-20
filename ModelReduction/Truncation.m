@@ -1,4 +1,5 @@
 clear all
+clc
 load('Models/Primitive/otter6mtrx.mat')
 
 syms u v w p q r x y z phi theta psi    real
@@ -38,7 +39,7 @@ latexeq("B_c",B_c(index,index))
 S.A = A(index,index);
 S.B = B(index,index);
 S.B_c = B_c(index,index);
-save('Models/otter3mtrx.mat','-struct','S')
+save('Models/Primitive/otter3mtrx.mat','-struct','S')
 
 
 

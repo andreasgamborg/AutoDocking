@@ -1,14 +1,14 @@
 close all
 clear all
 clc
-%%
 load('Models/Primitive/otter6mtrx.mat')
-
-
+%%
 syms u v w p q r x y z phi theta psi    real
 x = [u v w p q r x y z phi theta psi]';
 nu = x(1:6);
 syms tau [6 1] real
+
+D(2,2) = 600; % Add drag in sway
 
 M = MRB + MA;
 C = CRB + CA;
@@ -20,7 +20,7 @@ dnu = simplify(dnu);
 if(0)           %<-- Print Switch
     names = ["\dot{u}","\dot{v}","\dot{w}","\dot{p}","\dot{q}","\dot{r}"];
     for it = 1:6
-        latexeq(names(it),dnu(it));
+        latexeq(names(it),dnu(it),'multline');
     end
 end
 %% Find Jacobian
@@ -29,7 +29,7 @@ A = jacobian(dnu, nu);
 B = jacobian(dnu, tau);
 
 %% Print
-if(1)
+if(0)
     pretty(A(idx,idx))
     pretty(B(idx,idx))
 else
@@ -57,6 +57,7 @@ latexeq("B",B(idx,idx));
 
 S.A = A(idx,idx);
 S.B = B(idx,idx);
+
 save('Models/Primitive/otter3mtrx.mat','-struct','S')
 
 

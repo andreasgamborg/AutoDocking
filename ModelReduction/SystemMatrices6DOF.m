@@ -153,7 +153,7 @@ S.MA = MA;
 S.CA = CA;
 S.D = D;
 S.G = G;
-save('Models/otter6mtrx.mat','-struct','S')
+save('Models/Primitive/otter6mtrx.mat','-struct','S')
 
 %% Print
 if(0)           %<--- Console or LaTex
@@ -163,10 +163,10 @@ if(0)           %<--- Console or LaTex
     pretty(CA)
     pretty(D)
 else
-    latexeq("M_{RB}",MRB)
-    latexeq("C_{RB}",CRB)
-    latexeq("M_{A}",MA)
-    latexeq("C_{A}",CA)
-    latexeq("D",D)
+    latexeq("\bm{M}_{RB}",MRB)
+    latexeq("\bm{C}_{RB}",CRB)
+    latexeq("\bm{M}_{A}",MA)
+    latexeq("\bm{C}_{A}",CA)
+    latexeq("\bm{D}",D)
 end
 

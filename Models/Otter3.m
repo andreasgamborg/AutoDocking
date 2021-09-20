@@ -6,9 +6,9 @@ classdef Otter3 < Vessel
         B
     end
     properties (Constant)
-      
+        
         y_pont  = 0.395;    % distance from centerline to waterline area center (m)
-
+        
     end
     methods
         function O = Otter3(State,Payload)
@@ -20,10 +20,17 @@ classdef Otter3 < Vessel
             end
             O = O@Vessel(State,Payload);
             load('Models/Primitive/otter3mtrx.mat')
-            O.A = A;
-            O.B = B;
+            if isnumeric(A) && isnumeric(B)
+                O.A = A;
+                O.B = B;
+            else
+                Error('System matrices must be numeric')
+            end
+            
         end
-        
+        function P = getPos(O)
+            P = O.State([4 5 6]);
+        end
         function T = getThrust(O)
             % Propeller data
             l1 = [0; -O.y_pont; 0];                           % lever arm, left propeller (m)
@@ -46,7 +53,7 @@ classdef Otter3 < Vessel
             % Propeller forces and moments
             n(n>n_max) = n_max;             % saturation, physical limits
             n(n<n_min) = n_min;             % saturation, physical limits
-                        
+            
             Thrust = Propeller.K*Propeller.R*sin(Propeller.angle)*n.*abs(n) ...
                 - Propeller.K*cos(Propeller.angle)*abs(n)*O.State(1);
             O.Prop.Thrust = Thrust;

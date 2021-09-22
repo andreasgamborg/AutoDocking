@@ -33,7 +33,9 @@ classdef Otter6 < Vessel
             end
             O = O@Vessel(State,Payload);
         end
-        
+        function P = getPos(O)
+            P = O.State([7 8 12]);
+        end
         function T = getThrust(O)
             % Propeller data
             l1 = [0; -O.y_pont; 0];                           % lever arm, left propeller (m)

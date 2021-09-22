@@ -24,7 +24,7 @@ classdef Otter3 < Vessel
                 O.A = A;
                 O.B = B;
             else
-                Error('System matrices must be numeric')
+                error('System matrices must be numeric')
             end
             
         end

@@ -8,8 +8,6 @@ x = [u v w p q r x y z phi theta psi]';
 nu = x(1:6);
 syms tau [6 1] real
 
-D(2,2) = 600; % Add drag in sway
-
 M = MRB + MA;
 C = CRB + CA;
 A6 = -M\(C + D);
@@ -25,38 +23,31 @@ if(0)           %<-- Print Switch
 end
 %% Find Jacobian
 idx = [1 2 6];
-A = jacobian(dnu, nu);
-B = jacobian(dnu, tau);
+A3 = jacobian(dnu(idx), nu(idx));
+A3 = simplify(A3,1000);
+B3 = jacobian(dnu(idx), tau(idx));
 
 %% Print
-if(0)
-    pretty(A(idx,idx))
-    pretty(B(idx,idx))
+if(1)
+    pretty(A3)
+    pretty(B3)
 else
-    latexeq("A",A(idx,idx));
-    latexeq("B",B(idx,idx));
+    latexeq("A",A3);
+    latexeq("B",B3);
 end
 
 
 %% Reduction
-w = 0;
-p = 0;
-q = 0;
 % Linearization point
-u = 3;
-v = 0;
-r = 0;
+lp = [3, 0, 0, 0, 0, 0];
+A = subs(A3,[u, v, w, p, q, r], lp);
+B = subs(B3,[u, v, w, p, q, r], lp);
 
-%A = subs(A,[w, p, q],[0, 0, 0]);
-A = eval(A);
-B = eval(B);
+latexeq("A",A);
+latexeq("B",B);
 
-latexeq("A",A(idx,idx));
-latexeq("B",B(idx,idx));
-
-
-S.A = A(idx,idx);
-S.B = B(idx,idx);
+S.A = double(A);
+S.B = double(B);
 
 save('Models/Primitive/otter3mtrx.mat','-struct','S')
 

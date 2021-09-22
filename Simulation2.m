@@ -5,7 +5,7 @@ clc
 
 %% Init
 Ts = 1/50;
-N = 1500;
+N = 6000;
 t = 0; % Start time
 T = [];
 
@@ -56,11 +56,8 @@ end
 
 %% Main Loop
 
-r = [10;10;0];
-k = [0.3,0.8,-0.15]*12;
-R = [   cos(r(3)) sin(r(3));
-        -sin(r(3)) cos(r(3))
-        ];
+r = [20;2;0];
+k = [0.3,0.8,-0.15]*4;
 
 disp('Running Simulation...')
 for i = 1:N
@@ -68,23 +65,21 @@ for i = 1:N
     theta = -dir(3);
 
         %Transformation
-        d = R*dir(1:2);
-        dx = d(1);
-        dy = d(2);
+        dx = dir(1);
+        dy = dir(2);
         
+        rho = sqrt(dx^2+dy^2);
         alpha = -theta + atan2(dy, dx);
         beta = -theta-alpha;
-        rho = sqrt(dx^2+dy^2);
         
         alpha = wrapToPi(alpha);
                 
         velo = k(1)*rho;
         omega = k(2)*alpha+k(3)*beta;
-
     
     n = [
-        velo+omega
-        velo-omega
+        velo+omega/2
+        velo-omega/2
     ]; 
 
     Vessel.setProp(n,[0; 0]);

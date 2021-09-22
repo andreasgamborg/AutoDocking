@@ -133,7 +133,7 @@ Mq = -2 * 0.4 *w5 * M(5,5);
 Nr = -M(6,6) / T_yaw;            % specified using the time constant in T_yaw
 
 % Linear damping using relative velocities + nonlinear yaw damping
-D = -diag([Xu Yv Zw Kp Mq Nr*(1 + 10 * abs(nu_r(6)))]);
+%D = -diag([Xu Yv Zw Kp Mq Nr*(1 + 10 * abs(nu_r(6)))]);
 % Control forces and moments
 syms tau tau_crossflow
 % Ballast
@@ -151,8 +151,7 @@ S.MRB = MRB;
 S.CRB = CRB;
 S.MA = MA;
 S.CA = CA;
-S.D = D;
-S.G = G;
+
 save('Models/Primitive/otter6mtrx.mat','-struct','S')
 
 %% Print
@@ -161,12 +160,10 @@ if(0)           %<--- Console or LaTex
     pretty(CRB)
     pretty(MA)
     pretty(CA)
-    pretty(D)
 else
     latexeq("\bm{M}_{RB}",MRB)
     latexeq("\bm{C}_{RB}",CRB)
     latexeq("\bm{M}_{A}",MA)
     latexeq("\bm{C}_{A}",CA)
-    latexeq("\bm{D}",D)
 end
 

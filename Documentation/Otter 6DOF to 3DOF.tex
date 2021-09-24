@@ -229,15 +229,15 @@ For this lineariztion $U=3$
 
 
 \section{Waterfixed coordinates}
-
+In the common system equations $\nu$ is defined relative to the seabed
 \begin{align}
-	\bm{M}_{RB}\bm{\dot{\nu}} + \bm{M}_{A}\bm{\dot{\nu_r}} + \bm{C}_{RB}(\bm{\nu})\bm{\nu} + \bm{C}_{RB}(\bm{\nu}_r)\bm{\nu}_r + \bm{D}(\bm{\nu}_r)\bm{\nu}_r & = \bm{\tau} + \bm{w}(t) \\
-	\bm{\dot{\eta}}                                                                                                                                           & = \bm{J}(\eta)\bm{\nu}
+	\bm{M}_{RB}\bm{\dot{\nu}} + \bm{M}_{A}\bm{\dot{\nu_r}} + \bm{C}_{A}(\bm{\nu})\bm{\nu} + \bm{C}_{RB}(\bm{\nu}_r)\bm{\nu}_r + \bm{D}(\bm{\nu}_r)\bm{\nu}_r & = \bm{\tau} + \bm{w}(t) \\
+	\bm{\dot{\eta}}                                                                                                                                          & = \bm{J}(\eta)\bm{\nu}
 \end{align}
-
+If the velocities $\nu$ is defined relative to the water $\nu = \nu_r$. Since it is still preferred to have the position in land relative coordinates the velocities from the current needs to be included in the second equation.
 \begin{align}
-	\left(\bm{M}_{RB} + \bm{M}_{A}  \right) \bm{\dot{\nu}} + \left(\bm{C}_{RB}(\bm{\nu}) + \bm{C}_{RB}(\bm{\nu}) + \bm{D}(\bm{\nu})  \right)\bm{\nu} & = \bm{\tau} + \bm{w}(t)             \\
-	\bm{\dot{\eta}}                                                                                                                                  & = \bm{J}(\eta)\bm{\nu} + \bm{\nu}_c
+	\left(\bm{M}_{RB} + \bm{M}_{A}  \right) \bm{\dot{\nu}} + \left(\bm{C}_{A}(\bm{\nu}) + \bm{C}_{RB}(\bm{\nu}) + \bm{D}(\bm{\nu})  \right)\bm{\nu} & = \bm{\tau} + \bm{w}(t)             \\
+	\bm{\dot{\eta}}                                                                                                                                 & = \bm{J}(\eta)\bm{\nu} + \bm{\nu}_c
 \end{align}
 Where $\bm{\nu}_c$ is the velocity vector of the current
 \begin{equation}
@@ -245,10 +245,26 @@ Where $\bm{\nu}_c$ is the velocity vector of the current
 \end{equation}
 
 
-\section{Cross flow}
-\begin{equation*}
-	\bm{D} = \left[\begin{array}{cccccc} -77.5544 & 0 & 0 & 0 & 0 & 0\\ 0 & -1.7631\,r-244.0472\,v-0.0714 & 0 & 0 & 0 & 0.1943-1.7631\,v-83.3979\,r\\ 0 & 0 & -546.4805 & 0 & 0 & 0\\ 0 & 0 & 0 & -54.3823 & 0 & 0\\ 0 & 0 & 0 & 0 & -246.0496 & 0\\ 0 & 0.0571-0.5273\,v-88.2978\,r & 0 & 0 & 0 & -5.2075\,r-88.2978\,v-452.6500\,\left|r\right|-452.6500\,r\,\mathrm{sign}\left(r\right)-45.4210 \end{array}\right]
-\end{equation*}
+\section{Crossflow damping}
 
+
+
+\begin{figure}[H]
+	\includegraphics{graphics/SwayDampingLinearized.eps}
+	\caption{Linearized crossflow damping in sway}
+	\label{fig:SwayDampingLinearized}
+\end{figure}
+\begin{figure}[H]
+	\includegraphics{graphics/YawDampingLinearized.eps}
+	\caption{Linearized crossflow damping in yaw}
+	\label{fig:YawDampingLinearized}
+\end{figure}
+\begin{equation*}
+	\bm{\tau}_{cf} = \left[\begin{array}{c} 0\\ 1.2336-30.6073\,v-1.4439\,r\\ 0\\ 0\\ 0\\ 0.1891-1.5099\,v-11.2817\,r \end{array}\right]
+\end{equation*}
+\begin{multline*}
+	\bm{D} = \dfrac{d}{d\bm{\nu}} (-\bm{\tau}_d-\bm{\tau}_{cf}) = \\
+	= \left[\begin{array}{cccccc} 77.5544 & 0 & 0 & 0 & 0 & 0\\ 0 & 30.6073 & 0 & 0 & 0 & 1.4439\\ 0 & 0 & 546.4805 & 0 & 0 & 0\\ 0 & 0 & 0 & 54.3823 & 0 & 0\\ 0 & 0 & 0 & 0 & 246.0496 & 0\\ 0 & 1.5099 & 0 & 0 & 0 & 905.3000\,\left|r\right|+56.5467 \end{array}\right]
+\end{multline*}
 
 \end{document}

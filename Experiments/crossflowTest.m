@@ -1,7 +1,7 @@
 close all
 clear all
 clc
-
+%%
 L = 2;
 B = 0.2500;
 T = 0.1341;
@@ -34,11 +34,11 @@ end
 
 
 swayfit = fit(swaydamp(1:2,:)',swaydamp(3,:)','poly11');
-figure
+figure('Name','SwayDaming','DefaultAxesFontSize',26)
 plot(swayfit,swaydamp(1:2,:)',swaydamp(3,:)')
 
 yawfit = fit(yawdamp(1:2,:)',yawdamp(3,:)','poly11');
-figure
+figure('Name','YawDaming','DefaultAxesFontSize',26)
 plot(yawfit,yawdamp(1:2,:)',yawdamp(3,:)')
 
 swaycoef = coeffvalues(swayfit);
@@ -58,6 +58,7 @@ end
 
 S.tau_cf = [ 0 swaydamp 0 0 0 yawdamp]';
 
+%%
 save('Experiments/LinearCFdamp.mat','-struct','S')
 
 

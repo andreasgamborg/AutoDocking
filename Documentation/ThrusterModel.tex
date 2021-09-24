@@ -20,59 +20,47 @@
 \begin{document}
 
 \section{Kinematics}
+\begin{align}
+	\bm{M}_{RB}\bm{\dot{\nu}} + \bm{M}_{A}\bm{\dot{\nu_r}} + \bm{C}_{A}(\bm{\nu})\bm{\nu} + \bm{C}_{RB}(\bm{\nu}_r)\bm{\nu}_r + \bm{D}(\bm{\nu}_r)\bm{\nu}_r & = \bm{\tau} + \bm{w}(t) \\
+	\bm{\dot{\eta}}                                                                                                                                          & = \bm{J}(\eta)\bm{\nu}
+\end{align}
 \begin{equation}
-	M \dot{\nu} + C(\nu)\nu + D(\nu)\nu + g(\eta) + g_0 = \tau
+	\bm{\tau} = \bm{\tau}_{control}
 \end{equation}
-\begin{align*}
-	M  = M_{RB} + M_A \\
-	C  = C_{RB} + C_A
-\end{align*}
+%\begin{equation}
+%	\tau = \tau_{hydrodynamics}+\tau_{hydrostatics}+\tau_{wind}+\tau_{wave}+\tau_{control}
+%\end{equation}
+
+\section{Thruster model}
 
 \begin{equation}
-	\tau = \tau_{hydrodynamics}+\tau_{hydrostatics}+\tau_{wind}+\tau_{wave}+\tau_{control}
-\end{equation}
-
-
-\subsection{Control}
-\begin{equation}
-	\tau_{control} = \begin{bmatrix}
-		\tau_{control,linear} \\
-		\tau_{control,torque}
+	\bm{\tau}_{control} = \begin{bmatrix}
+		\bm{\tau}_{control,linear} \\
+		\bm{\tau}_{control,torque}
 	\end{bmatrix}
 \end{equation}
 
 Each propeller can rotate with an angle $\xi_p$. The thrust of each propeller can be describe as a vector by spilting it into components that align with the ship coordinate frame
 \begin{equation}
-	T_p = \begin{bmatrix} \cos(\xi_p)\\ \sin(\xi_p)\\ 0 \end{bmatrix} t_p
+	t_p = T_{nn}n_p^2+T_{nv}V_A n_p
 \end{equation}
-where $t_p$ is the magnitude of the thrust and $T_p$ is the thrust vector.
+\begin{equation}
+	\bm{T}_p = \begin{bmatrix} \cos(\xi_p)\\ \sin(\xi_p)\\ 0 \end{bmatrix} t_p
+\end{equation}
+where $t_p$ is the magnitude of the thrust and $\bm{T}_p$ is the thrust vector.
 The linear control force is found as the sum of forces from each propeller p.
 \begin{equation}
-	\tau_{control,linear} = \sum^P T_p
+	\bm{\tau}_{control,linear} = \sum^P \bm{T}_p
 \end{equation}
 
 \begin{equation}
-	\tau_{control,torque} = \sum^P  r_p \times T_p = \sum^P S(r_p) T_p
+	\bm{\tau}_{control,torque} = \sum^P  \bm{r}_p \times \bm{T}_p = \sum^P S(\bm{r}_p) \bm{T}_p
 \end{equation}
-where $r_p$ is the position vector of thruster \textit{p} and $S(r_p)$ is the skew-symetric matrix of vector $r_p$.
+where $\bm{r}_p$ is the position vector of thruster \textit{p} and $S(\bm{r}_p)$ is the skew-symetric matrix of vector $\bm{r}_p$.
 
 In the case of two propellers we have
 \begin{equation}
-	\tau_{control} = \begin{bmatrix} I & I \\ S(r_1) & S(r_2) \end{bmatrix}\begin{bmatrix} T_1 \\ T_2 \end{bmatrix}
-\end{equation}
-
-
-\section{Thruster model}
-
-\begin{equation}
-	\begin{bmatrix} T_1 & T_2 \end{bmatrix} = \begin{bmatrix} \cos(\xi_1) & \cos(\xi_2) \\ \sin(\xi_1) & \sin(\xi_2) \\ 0 & 0\end{bmatrix}\begin{bmatrix} t_1 & 0 \\ 0 & t_2 \end{bmatrix}
-\end{equation}
-\begin{equation}
-	\begin{bmatrix} t_1 \\ t_2 \end{bmatrix} = \begin{bmatrix} T_{nn}n_1 & T_{nv}V_A \\ T_{nn}n_2 & T_{nv}V_A \end{bmatrix}\begin{bmatrix} n_1 \\ n_2 \end{bmatrix}
-\end{equation}
-
-\begin{equation}
-	\tau_{control} = \begin{bmatrix} I & I \\ S(r_1) & S(r_2) \end{bmatrix}\begin{bmatrix} T_1 \\ T_2 \end{bmatrix}
+	\bm{\tau}_{control} = \begin{bmatrix} I & I \\ S(\bm{r}_1) & S(\bm{r}_2) \end{bmatrix}\begin{bmatrix} \bm{T}_1 \\ \bm{T}_2 \end{bmatrix}
 \end{equation}
 
 \end{document}

@@ -4,7 +4,7 @@ function fig = niceplot(time,series, names, title_in, style, axisnames, position
 
 Nseries = size(series,1);
 fontsize = 26;
-Monitor = 1;
+Monitor = 2;
 
 if nargin<3
   names = "series "+string(1:1:Nseries);

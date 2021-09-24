@@ -5,9 +5,13 @@ clc
 L = 2;
 B = 0.2500;
 T = 0.1341;
+% 
+% v_list = 0 : 0.01: 0.2572;    % 0 - 0.5   knots
+% r_list = 0 : 0.002: 0.0349;    % 0 - 2     deg/s
 
-v_list = 0:0.01: 0.2572;    % 0 - 0.5   knots
-r_list = 0:0.002: 0.0349;    % 0 - 2     deg/s
+v_list =  0 : 0.01  : 1;    
+r_list =  0 : 0.01 : 0.5;    
+
 
 swaydamp = [];
 yawdamp = [];
@@ -33,11 +37,11 @@ end
 
 
 
-swayfit = fit(swaydamp(1:2,:)',swaydamp(3,:)','poly11');
+swayfit = fit(swaydamp(1:2,:)',swaydamp(3,:)','poly22');
 figure('Name','SwayDaming','DefaultAxesFontSize',26)
 plot(swayfit,swaydamp(1:2,:)',swaydamp(3,:)')
 
-yawfit = fit(yawdamp(1:2,:)',yawdamp(3,:)','poly11');
+yawfit = fit(yawdamp(1:2,:)',yawdamp(3,:)','poly22');
 figure('Name','YawDaming','DefaultAxesFontSize',26)
 plot(yawfit,yawdamp(1:2,:)',yawdamp(3,:)')
 
@@ -52,13 +56,13 @@ if (length(swaycoef) == 3)
     yawdamp = yawcoef * [1 v r]';
 end
 if (length(swaycoef) == 6)
-    swaydamp = swaycoef * [1 v r v^2 v*r r^2]';
-    yawdamp = yawcoef * [1 v r v^2 v*r r^2]';
+    swaydamp = swaycoef * [1 v r abs(v)*v abs(v)*r abs(r)*r]';
+    yawdamp = yawcoef * [1 v r abs(v)*v abs(v)*r abs(r)*r]';
 end
 
-S.tau_cf = [ 0 swaydamp 0 0 0 yawdamp]';
-
-%%
+tau_cf =[ 0 swaydamp 0 0 0 yawdamp]'
+%% Save
+S.tau_cf = tau_cf;
 save('Experiments/LinearCFdamp.mat','-struct','S')
 
 

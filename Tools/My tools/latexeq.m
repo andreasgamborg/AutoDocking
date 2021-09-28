@@ -9,6 +9,9 @@ if nargin < 3
 end
 
 l = latex(sym(right));
+if strcmp(type,'multline') || strcmp(type,'multline*') 
+    l = lineSplit(l,80);
+end
 eq = left + " = " + l;
 
 formatSpec = "\\begin{"+type+"}\r \t%s \r\\end{"+type+"}";

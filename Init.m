@@ -2,7 +2,7 @@
 close all
 clear all
 clc
-%% Path
+%% Add folders to path
 addpath(genpath('Tools/'))
 addpath(genpath('Models/'))
 addpath(genpath('Experiments/'))

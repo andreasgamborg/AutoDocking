@@ -151,6 +151,7 @@ S.MRB = MRB;
 S.CRB = CRB;
 S.MA = MA;
 S.CA = CA;
+S.G = G;
 
 save('Models/Primitive/otter6mtrx.mat','-struct','S')
 

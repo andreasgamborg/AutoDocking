@@ -16,6 +16,8 @@ if(0)
     latexeq("B",B3);
 end
 
+%%
+subs(deta,[w, p, q, phi, theta], zeros(1,5))
 %% Reduction
 % Linearization point
 lp = [3, 0, 0, 0, 0, 0];

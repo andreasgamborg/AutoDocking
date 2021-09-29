@@ -27,9 +27,17 @@ eqn = [ T(1) == cos(xi_1)*t1 + cos(xi_2)*t2
 
 %%
 
-T = [0 0 0]';
-tau = [0 0 -1]';
+T = [1 0 0]';
+tau = [0 0 0.8]';
+S  = Smtrx(r2)-Smtrx(r1);
+ 
+T2 = pinv(S)*(tau - Smtrx(r1)*T)
+% T1 = T - T2
+T1 = pinv(S)*(Smtrx(r2)*T - tau)
 
-T2 = (Smtrx(r2)-Smtrx(r1))\(tau-Smtrx(r1)*T)
-T1 = T - T2
+T = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)]*[T1; T2]
+
+
+
+
 

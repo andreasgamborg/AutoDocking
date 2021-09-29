@@ -4,6 +4,7 @@ classdef Otter6 < Vessel
     properties
         trim_moment = 0;
         trim_setpoint = 280;
+        UseProppeller % boolean for switching between tau or [n xi] as actuator
     end
     properties (Constant)
         L = 2.0;            % length (m)
@@ -32,11 +33,15 @@ classdef Otter6 < Vessel
                 Payload.r = [0;0;0];
             end
             O = O@Vessel(State,Payload);
+            O.UseProppeller = 0;
+            O.Prop.xi = 0;
+            O.Prop.n = 0;
+            O.Prop.Thrust = 0;
         end
         function P = getPos(O)
             P = O.State([7 8 12]);
         end
-        function T = getThrust(O)
+        function T = updateThrust(O)
             % Propeller data
             l1 = [0; -O.y_pont; 0];                           % lever arm, left propeller (m)
             l2 = [0; O.y_pont; 0];                            % lever arm, right propeller (m)
@@ -181,7 +186,10 @@ classdef Otter6 < Vessel
             J = eulerang(eta(4),eta(5),eta(6));
             
             %Thrust
-            tau = O.getThrust();
+            if O.UseProppeller
+                O.Thrust = O.updateThrust();
+            end
+            tau = O.Thrust;
             
             % Time derivative of the state vector
             nudot = M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta - g_0);
@@ -199,6 +207,7 @@ classdef Otter6 < Vessel
             O.History.Velo(:,O.t) = O.State(1:6);
             O.History.Pos(:,O.t) = O.State(7:12);
             O.History.Propeller(:,O.t) = [O.Prop.xi; O.Prop.n; O.Prop.Thrust];
+            O.History.Thrust(:,O.t) = O.Thrust;
         end
         function plot(O, T)
             title = 'Course';

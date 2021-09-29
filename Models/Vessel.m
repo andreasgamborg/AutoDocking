@@ -6,6 +6,7 @@ classdef Vessel < handle
         State
         Payload
         Current
+        Thrust
         Prop
         History
         t = 0;
@@ -43,7 +44,7 @@ classdef Vessel < handle
         end
     end
     methods (Abstract)
-        getThrust(V)
+        updateThrust(V)
         getStateDerivative(V)
         step(V,Ts)
     end

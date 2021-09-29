@@ -4,6 +4,7 @@ classdef Otter3 < Vessel
     properties
         A
         B
+        UseProppeller % boolean for switching between tau or [n xi] as actuator
     end
     properties (Constant)
         
@@ -11,27 +12,31 @@ classdef Otter3 < Vessel
         
     end
     methods
-        function O = Otter3(State,Payload)
+        function O = Otter3(path,State,Payload)
             %Otter6(State,Payload) Construct an instance of Otter6
-            if (nargin < 1),  State = zeros(6,1); end
-            if (nargin < 2)
+            if (nargin < 1), error('Provide a path for system matrices A & B'); end
+            if (nargin < 2),  State = zeros(6,1); end
+            if (nargin < 3)
                 Payload.m = 0;
                 Payload.r = [0;0;0];
             end
             O = O@Vessel(State,Payload);
-            load('Models/Primitive/otter3mtrx.mat')
+            load(path);
             if isnumeric(A) && isnumeric(B)
                 O.A = A;
                 O.B = B;
             else
                 error('System matrices must be numeric')
             end
-            
+            O.UseProppeller = 0;
+            O.Prop.xi = [0 0]';
+            O.Prop.n = [0 0]';
+            O.Prop.Thrust = [0 0]';
         end
         function P = getPos(O)
             P = O.State([4 5 6]);
         end
-        function T = getThrust(O)
+        function T = updateThrust(O)
             % Propeller data
             l1 = [0; -O.y_pont; 0];                           % lever arm, left propeller (m)
             l2 = [0; O.y_pont; 0];                            % lever arm, right propeller (m)
@@ -73,7 +78,11 @@ classdef Otter3 < Vessel
             v_c = O.Current.v * sin(O.Current.beta);     % current velocity NED
             
             %Thrust
-            tau = O.getThrust();
+            if O.UseProppeller
+                O.Thrust = O.updateThrust();
+            end
+            tau = O.Thrust;
+            
             % Kinematics
             psi = O.State(6);
             R = [   cos(psi)   -sin(psi)    0
@@ -94,6 +103,7 @@ classdef Otter3 < Vessel
             O.History.Velo(:,O.t) = O.State(1:3);
             O.History.Pos(:,O.t) = O.State(4:6);
             O.History.Propeller(:,O.t) = [O.Prop.xi; O.Prop.n; O.Prop.Thrust];
+            O.History.Thrust(:,O.t) = O.Thrust;
         end
         function plot(V,T)
             title = 'Course';

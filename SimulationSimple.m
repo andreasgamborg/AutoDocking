@@ -11,10 +11,10 @@ T = [];
 
 % Init State
 %% Vessel
-load('Models/Primitive/otter3mtrx.mat')
-load('Models/Primitive/otter6mtrx.mat')
-A6 = -(MRB + MA)\(CRB + CA + D);
-B6 = inv(MRB + MA);
+load('Models/Primitive/otter3mtrx_lin.mat')
+% load('Models/Primitive/otter6mtrx.mat')
+% A6 = -(MRB + MA)\(CRB + CA + D);
+% B6 = inv(MRB + MA);
 clear MRB MA CRB CA D
 %% Main Loop 3
 nu = [0 0 0]';
@@ -22,7 +22,7 @@ tau = [0 0 0]';
 x = [nu; tau];
 
 K = eye(3);
-%K = place(A,B,[-2 -1 -2]')
+K = place(A,B,[-2 -2 -2]')
 %K = place(A,B,eig(A)*1.1)
 r = [10 0 0.5]';
 

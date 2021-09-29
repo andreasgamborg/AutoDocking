@@ -3,8 +3,8 @@ clear all
 clc
 load('Models/Primitive/otter6mtrx.mat')
 load('Experiments/tau_damp.mat')
-load('Experiments/tau_cf.mat')
-
+load('CrossFlowDragFit/tau_cf11.mat')
+tau_cf = tau_cf11;
 %%
 syms u v w p q r x y z phi theta psi    real
 nu = [u v w p q r]';
@@ -23,7 +23,7 @@ deta = simplify(deta,100);
 
 
 %% Print
-if(0)           %<-- Print Switch
+if(1)           %<-- Print Switch
     names = ["\dot{u}","\dot{v}","\dot{w}","\dot{p}","\dot{q}","\dot{r}"];
     for it = 1:6
         latexeq(names(it),dnu(it),'multline');
@@ -36,5 +36,10 @@ if(0)           %<-- Print Switch
 end
 
 %%
-%save('Models/Primitive/SysEq6DOF.mat','-struct','S')
+S.nu = nu;
+S.dnu = dnu;
+S.eta = eta;
+S.deta = deta;
+S.tau = tau;
+save('Models/Primitive/SysEq6DOF_lin.mat','-struct','S')
 

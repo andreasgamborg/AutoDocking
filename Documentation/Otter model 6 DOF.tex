@@ -13,6 +13,7 @@
 }
 % Useful packages
 \usepackage{amsmath}
+\usepackage{bm}
 \usepackage{graphicx}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 \usepackage[framed,numbered,autolinebreaks,useliterate]{mcode} % MATLAB style code
@@ -236,6 +237,27 @@ The crossflow is computed using strip theory and is a function of $\nu_r$
 \end{equation}
 $\tau_{cf}$ Has components only in \textit{v} and \textit{r}
 
+First-order fitting
+\begin{equation*}
+	\bm{\tau}_{cf} = \left[\begin{array}{c} 0\\ 1.2907e-16\,r-12.2363\,v-4.8735e-17\\ 0\\ 0\\ 0\\ -5.9740\,r-5.1780e-16\,v-3.6373e-19 \end{array}\right]
+	\approx \left[\begin{array}{c} 0\\ -12.2363\,v\\ 0\\ 0\\ 0\\ -5.9740\,r \end{array}\right]
+\end{equation*}
+Second-order fitting
+\begin{equation*}
+	\bm{\tau}_{cf} = \left[\begin{array}{c} 0\\ 0.1824\,r-0.0666\,v-41.8276\,r\,\left|r\right|-1.6409\,r\,\left|v\right|-122.0516\,v\,\left|v\right|+0.0019\\ 0\\ 0\\ 0\\ 0.0535\,v-0.1471\,r-2.5043\,r\,\left|r\right|-88.3910\,r\,\left|v\right|-0.2423\,v\,\left|v\right|-0.0015 \end{array}\right]
+\end{equation*}
+
+\begin{figure}[H]
+	\includegraphics[width = \textwidth]{graphics/SwayDampingFitting.eps}
+	\caption{Linearized crossflow damping in sway}
+	\label{fig:SwayDampingFitting}
+\end{figure}
+\begin{figure}[H]
+	\includegraphics[width = \textwidth]{graphics/YawDampingFitting.eps}
+	\caption{Linearized crossflow damping in yaw}
+	\label{fig:YawDampingFitting}
+\end{figure}
+
 \section{Ballast}
 \begin{lstlisting}[frame=single]
 	trim_setpoint = 280;
@@ -396,6 +418,46 @@ The equations can be found in \textbf{AutoDocking/Models/Primitive/SysEq6DOF.mat
 
 \begin{multline}
 	\dot{y} = v\,\left(\cos\left(\phi \right)\,\cos\left(\psi \right)+\sin\left(\phi \right)\,\sin\left(\psi \right)\,\sin\left(\theta \right)\right)		\\
+	-w\,\left(\cos\left(\psi \right)\,\sin\left(\phi \right)-\cos\left(\phi \right)\,\sin\left(\psi \right)\,\sin\left(\theta \right)\right)+u\,\cos\left(\theta \right)\,\sin\left(\psi \right)
+\end{multline}
+\begin{equation*}
+	\dot{z} = w\,\cos\left(\phi \right)\,\cos\left(\theta \right)-u\,\sin\left(\theta \right)+v\,\cos\left(\theta \right)\,\sin\left(\phi \right)
+\end{equation*}
+\begin{equation*}
+	\dot{\phi} = p+\frac{\sin\left(\theta \right)\,\left(r\,\cos\left(\phi \right)+q\,\sin\left(\phi \right)\right)}{\cos\left(\theta \right)}
+\end{equation*}
+\begin{equation*}
+	\dot{\theta} = q\,\cos\left(\phi \right)-r\,\sin\left(\phi \right)
+\end{equation*}
+\begin{equation*}
+	\dot{\psi} = \frac{r\,\cos\left(\phi \right)+q\,\sin\left(\phi \right)}{\cos\left(\theta \right)}
+\end{equation*}
+
+
+\begin{multline}
+	\dot{u} = 0.0054\,\tau _{q}-1.3169\,q+0.0175\,\tau _{u}+5.3523e-04\,\tau _{w}-16.0798\,\theta \\-1.3574\,u-0.2925\,w-12.1092\,z+0.3371\,p\,r-0.0147\,p\,v-0.0265\,q\,u-1.8664\,q\,w\\+2.3477\,r\,v+0.2649\,u\,w+0.0177\,p^2+0.1866\,q^2+0.1690\,r^2
+\end{multline}
+\begin{multline}
+	\dot{v} = 0.2504\,p+4.9601\,\phi +0.0667\,r-0.0046\,\tau _{p}-0.0014\,\tau _{r}+0.0078\,\tau _{v}\\-5.9306e-04\,v-0.0364\,p\,q+0.1167\,q\,r+0.7867\,p\,w-0.4028\,r\,u-0.1266\,v\,w+0.3298\,r\,\left|r\right|\\+0.1143\,r\,\left|v\right|-0.9463\,v\,\left|v\right|+1.6913e-05
+\end{multline}
+\begin{multline}
+	\dot{w} = 0.0029\,\tau _{q}-0.7243\,q+5.3523e-04\,\tau _{u}+0.0094\,\tau _{w}-22.5556\,\theta \\-0.0415\,u-5.1289\,w-75.2186\,z-0.0146\,p\,r-1.2581\,p\,v+0.5354\,q\,u-0.0265\,q\,w\\+0.0412\,r\,v+0.1457\,u\,w-0.0903\,p^2-0.0974\,q^2-0.0071\,r^2
+\end{multline}
+\begin{multline}
+	\dot{p} = 0.2243\,r-67.3414\,\phi -3.3993\,p+0.0625\,\tau _{p}-0.0050\,\tau _{r}-0.0046\,\tau _{v}\\+4.1383e-05\,v-0.1257\,p\,q-0.5847\,q\,r+0.1266\,p\,w-0.3545\,r\,u+1.7190\,v\,w+2.4489\,r\,\left|r\right|\\+0.4457\,r\,\left|v\right|+0.5631\,v\,\left|v\right|-1.2384e-06
+\end{multline}
+\begin{multline}
+	\dot{q} = 0.0294\,\tau _{q}-7.2431\,q+0.0054\,\tau _{u}+0.0029\,\tau _{w}-88.4387\,\theta \\-0.4151\,u-1.6087\,w-66.6009\,z+0.8539\,p\,r-0.0810\,p\,v-0.1457\,q\,u-0.2649\,q\,w\\+0.4121\,r\,v+1.4572\,u\,w+0.0971\,p^2+0.0265\,q^2-0.0707\,r^2
+\end{multline}
+\begin{multline}
+	\dot{r} = 0.2696\,p+5.3406\,\phi -1.0413\,r-0.0050\,\tau _{p}+0.0229\,\tau _{r}-0.0014\,\tau _{v}\\+0.0013\,v-0.4188\,p\,q+0.1257\,q\,r+0.0395\,p\,w-0.1107\,r\,u-0.1363\,v\,w-10.3735\,r\,\left|r\right|\\-2.0239\,r\,\left|v\right|+0.1699\,v\,\left|v\right|-3.7453e-05
+\end{multline}
+\begin{multline}
+	\dot{x} = w\,\left(\sin\left(\phi \right)\,\sin\left(\psi \right)+\cos\left(\phi \right)\,\cos\left(\psi \right)\,\sin\left(\theta \right)\right)\\
+	-v\,\left(\cos\left(\phi \right)\,\sin\left(\psi \right)-\cos\left(\psi \right)\,\sin\left(\phi \right)\,\sin\left(\theta \right)\right)+u\,\cos\left(\psi \right)\,\cos\left(\theta \right)
+\end{multline}
+\begin{multline}
+	\dot{y} = v\,\left(\cos\left(\phi \right)\,\cos\left(\psi \right)+\sin\left(\phi \right)\,\sin\left(\psi \right)\,\sin\left(\theta \right)\right)\\
 	-w\,\left(\cos\left(\psi \right)\,\sin\left(\phi \right)-\cos\left(\phi \right)\,\sin\left(\psi \right)\,\sin\left(\theta \right)\right)+u\,\cos\left(\theta \right)\,\sin\left(\psi \right)
 \end{multline}
 \begin{equation*}

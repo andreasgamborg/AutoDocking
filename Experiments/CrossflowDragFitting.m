@@ -37,11 +37,11 @@ end
 
 
 
-swayfit = fit(swaydamp(1:2,:)',swaydamp(3,:)','poly22');
+swayfit = fit(swaydamp(1:2,:)',swaydamp(3,:)','poly11');
 figure('Name','SwayDaming','DefaultAxesFontSize',26)
 plot(swayfit,swaydamp(1:2,:)',swaydamp(3,:)')
 
-yawfit = fit(yawdamp(1:2,:)',yawdamp(3,:)','poly22');
+yawfit = fit(yawdamp(1:2,:)',yawdamp(3,:)','poly11');
 figure('Name','YawDaming','DefaultAxesFontSize',26)
 plot(yawfit,yawdamp(1:2,:)',yawdamp(3,:)')
 
@@ -63,7 +63,8 @@ end
 tau_cf =[ 0 swaydamp 0 0 0 yawdamp]'
 %% Save
 S.tau_cf = tau_cf;
-save('Experiments/LinearCFdamp.mat','-struct','S')
+
+%save('Experiments/X.mat','-struct','X')
 
 
 

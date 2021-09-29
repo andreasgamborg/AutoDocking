@@ -1,7 +1,7 @@
 close all
 clear all
 clc
-load('Models/Primitive/SysEq6DOF.mat')
+load('Models/Primitive/SysEq6DOF_lin.mat')
 syms u v w p q r x y z phi theta psi    real
 
 %% Find Jacobian
@@ -30,4 +30,4 @@ latexeq("B",B);
 S.A = double(A);
 S.B = double(B);
 
-% save('Models/Primitive/otter3mtrx.mat','-struct','S')
+save('Models/Primitive/otter3mtrx_lin.mat','-struct','S')

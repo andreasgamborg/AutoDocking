@@ -34,9 +34,9 @@ classdef Otter6 < Vessel
             end
             O = O@Vessel(State,Payload);
             O.UseProppeller = 0;
-            O.Prop.xi = 0;
-            O.Prop.n = 0;
-            O.Prop.Thrust = 0;
+            O.Prop.xi = [0 0]';
+            O.Prop.n = [0 0]';
+            O.Prop.Thrust = [0 0]';
         end
         function P = getPos(O)
             P = O.State([7 8 12]);
@@ -245,16 +245,22 @@ classdef Otter6 < Vessel
             
             title = 'Angular Velocities';
             names = ["$p$ roll", "$q$ pitch", "$r$ yaw"];
-            niceplot(T, rad2deg(O.History.Velo(4:6,:)*60), names, title, ["--"], ["time [s]", "[deg/min]"], 'southeast');
+            niceplot(T, rad2deg(O.History.Velo(4:6,:))*60, names, title, ["--"], ["time [s]", "[deg/min]"], 'southeast');
             ytickformat('%.0f°')
             
-            title = 'Propeller velocity';
-            names = ["P", "SB"];
-            niceplot(T, toRPM(O.History.Propeller(3:4,:)), names, title, ["-"], ["time [s]", "[rpm]"], 'northwest');
-            
-            title = 'Propeller Thrust';
-            names = ["P", "SB"];
-            niceplot(T, O.History.Propeller(5:6,:), names, title, ["r-","g--"], ["time [s]", "[N]"], 'southwest');
+            if (O.UseProppeller)
+                title = 'Propeller velocity';
+                names = ["P", "SB"];
+                niceplot(T, toRPM(O.History.Propeller(3:4,:)), names, title, ["-"], ["time [s]", "[rpm]"], 'northwest');
+                
+                title = 'Propeller Thrust';
+                names = ["P", "SB"];
+                niceplot(T, O.History.Propeller(5:6,:), names, title, ["r-","g--"], ["time [s]", "[N]"], 'southwest');
+            else
+                title = 'Thrust';
+                names = ["$\tau_u$", "$\tau_v$", "$\tau_w$"];
+                niceplot(T, O.History.Thrust([1 2 6],:), names, title, ["-"], ["time [s]", "[N]"], 'southwest');
+            end
         end
     end
 end

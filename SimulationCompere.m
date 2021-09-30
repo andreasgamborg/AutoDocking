@@ -27,7 +27,7 @@ O3 = Otter3(Model);
 %% Control
 nu = [0 0 0]';
 tau = [0 0 0]';
-Q = diag([1 10 100]);
+Q = diag([1 0.01 10000]);
 R = eye(3);
 
 [K,P,E] = lqr(A,B,Q,R);
@@ -35,7 +35,7 @@ R = eye(3);
 %K = place(A,B,[-2 -2 -2]')
 %K = place(A,B,eig(A)*1.1)
 
-r = [1 0 20]';
+r = [1 0 -60]';
 
 % scale ref
 Ak = A-B*K;

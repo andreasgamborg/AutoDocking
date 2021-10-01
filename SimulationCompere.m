@@ -14,11 +14,9 @@ Model = 'Models/Primitive/otter3mtrx_lin.mat'
 
 load(Model);
 %load('Models/Primitive/otter3mtrx.mat');
-
-C = eye(3);
-C(1,1) = toKnots(1);            % knot per m/s
-C(2,2) = toKnots(1);            % knot per m/s
-C(3,3) = 60*180/pi;             % deg/min per rad/s
+% 
+% C(1,1) = toKnots(1);            % knot per m/s
+% C(3,3) = 60*180/pi;             % deg/min per rad/s
 
 O6 = Otter6;
 O3 = Otter3(Model);
@@ -36,7 +34,7 @@ R = diag([1 10000 1]);
 %K = place(A,B,eig(A)*1.1)
 
 r = [[3 0 0]' [1 0 480]'];
-rt = 1
+rt = 1;
 % scale ref
 Ak = A-B*K;
 Cref = -C*inv(Ak)*B;
@@ -53,7 +51,7 @@ for i = 1:N
     
     tau = [tau(1:2); 0; 0; 0; tau(3)];
     
-    tau(2)=0;
+%     tau(2)=0;
         
     O3.Thrust = tau;
     O6.Thrust = tau;

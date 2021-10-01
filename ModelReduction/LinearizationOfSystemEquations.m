@@ -20,14 +20,25 @@ end
 subs(deta,[w, p, q, phi, theta], zeros(1,5))
 %% Reduction
 % Linearization point
-lp = [3, 0, 0, 0, 0, 0];
+lp = [3/toKnots(1), 0, 0, 0, 0, 0];
 A = subs(A3,[u, v, w, p, q, r], lp);
 B = subs(B3,[u, v, w, p, q, r], lp);
 
-latexeq("A",A);
-latexeq("B",B);
+% Measurements
+C(1,1) = toKnots(1);            % knot per m/s
+C(2,2) = toKnots(1);            % knot per m/s
+C(3,3) = 60*180/pi;             % deg/min per rad/s
+
+Cm = C(1,:); 
+
+latexeq("\bm{A}",A);
+latexeq("\bm{B}",B);
+latexeq("\bm{C}",C);
 
 S.A = double(A);
 S.B = double(B);
+S.C = C;
+S.Cm = Cm;
+S.linarizationPoint = lp;
 
 save('Models/Primitive/otter3mtrx_lin.mat','-struct','S')

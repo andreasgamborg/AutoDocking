@@ -21,7 +21,7 @@ eqn = [ T(1) == cos(xi_1)*t1 + cos(xi_2)*t2
     ];
 
 %%
-[t1,t2,xi_1,xi_2,parameters,conditions] = solve(eqn,[t1 t2 xi_1 xi_2],'ReturnConditions',true)
+%[t1,t2,xi_1,xi_2,parameters,conditions] = solve(eqn,[t1 t2 xi_1 xi_2],'ReturnConditions',true)
 
 
 
@@ -36,6 +36,11 @@ T2 = pinv(S)*(tau - Smtrx(r1)*T)
 T1 = pinv(S)*(Smtrx(r2)*T - tau)
 
 T = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)]*[T1; T2]
+
+%%
+B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)]
+
+Damp
 
 
 

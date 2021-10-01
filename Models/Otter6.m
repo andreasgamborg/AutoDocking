@@ -41,6 +41,11 @@ classdef Otter6 < Vessel
         function P = getPos(O)
             P = O.State([7 8 12]);
         end
+        function x = getMeasurement(O)
+            x = O.State();
+            x([2 3 4 5 6 9 10 11]) = nan;
+            x = x + randn(12,1);
+        end
         function T = updateThrust(O)
             % Propeller data
             l1 = [0; -O.y_pont; 0];                           % lever arm, left propeller (m)

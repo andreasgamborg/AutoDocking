@@ -10,15 +10,15 @@ B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
 W = eye(6);
 iW = inv(W);
 
-T = [1 1 0 0 0 4]';
+T = [5 0 0 0 0 2]';
 
 %% Pseudo Inverse
-u(:,1) = pinv(B)*T;
+tau(:,1) = pinv(B)*T;
 %% Damped least-squares inverse
 e = 1e-6;
 C = iW*B' * inv(B*iW*B'+e*eye(6));
 
-u(:,2) = C*T;
+tau(:,2) = C*T;
 %% SVD
 [U,S,V] = svd(B*iW*B');
 S(S<eps) = 0;
@@ -26,11 +26,29 @@ iS = S;
 iS(S~=0) = 1./S(S~=0);
 
 C = iW*B'*V*iS*U';
-u(:,3) = C*T;
+tau(:,3) = C*T;
 
 %%
 
-u
+tau1 = tau(1:3,3);
+tau2 = tau(4:6,3);
 
-T = B*u
+xi1 = atan2(tau1(2),tau1(1));
+xi2 = atan2(tau2(2),tau2(1));
+
+a1 = norm(tau1);
+a2 = norm(tau2);
+
+disp('Angles:')
+disp([xi1;xi2])
+disp('Forces:')
+disp([a1;a2])
+
+
+%% Check
+disp('Net force an moment:')
+T = B*[cos(xi1) 0; sin(xi1) 0; 0 0; 0 cos(xi2); 0 sin(xi2); 0 0]*[a1; a2]
+
+
+
 

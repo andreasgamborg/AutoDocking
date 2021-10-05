@@ -5,6 +5,7 @@ classdef Otter6 < Vessel
         trim_moment = 0;
         trim_setpoint = 280;
         UseProppeller % boolean for switching between tau or [n xi] as actuator
+        Propeller
     end
     properties (Constant)
         L = 2.0;            % length (m)
@@ -33,10 +34,11 @@ classdef Otter6 < Vessel
                 Payload.r = [0;0;0];
             end
             O = O@Vessel(State,Payload);
-            O.UseProppeller = 0;
+            O.UseProppeller = false;
             O.Prop.xi = [0 0]';
             O.Prop.n = [0 0]';
             O.Prop.Thrust = [0 0]';
+            O.Propeller = O.calculatePropeller;
         end
         function P = getPos(O)
             P = O.State([7 8 12]);
@@ -46,20 +48,64 @@ classdef Otter6 < Vessel
             x([2 3 4 5 6 9 10 11]) = nan;
             x = x + randn(12,1);
         end
+        function controlAllocation(O,T)
+            
+            r1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
+            r2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
+            B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
+
+            tau = pinv(B)*T;
+
+            
+            tau1 = tau(1:3);
+            tau2 = tau(4:6);
+            xi1 = atan2(tau1(2),tau1(1));
+            xi2 = atan2(tau2(2),tau2(1));
+            a1 = norm(tau1);
+            a2 = norm(tau2);
+
+            if xi1 > pi/2
+                xi1 = xi1-pi;
+                a1 = -a1;
+            end
+            if xi1 < -pi/2
+                xi1 = xi1+pi;
+                a1 = -a1;
+            end
+            if xi2 > pi/2
+                xi2 = xi2-pi;
+                a2 = -a2;
+            end
+            if xi2 < -pi/2
+                xi2 = xi2+pi;
+                a2 = -a2;
+            end
+            
+            n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
+            n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
+            
+            O.Prop.n = [n1 n2]';
+            O.Prop.xi = [xi1 xi2]';
+        end
+        function Propeller = calculatePropeller(O)
+            Propeller.R = 0.1;
+            Propeller.C = 0.05;
+            Propeller.angle = pi/8;
+            Propeller.blades = 3;
+            K = O.rho/2*pi*Propeller.R*Propeller.C*Propeller.blades;
+            Propeller.Tnn = K*Propeller.R*sin(Propeller.angle);
+            Propeller.Tnv = - K*cos(Propeller.angle);
+        end
         function T = updateThrust(O)
             % Propeller data
-            l1 = [0; -O.y_pont; 0];                           % lever arm, left propeller (m)
-            l2 = [0; O.y_pont; 0];                            % lever arm, right propeller (m)
+            l1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
+            l2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
             k_pos = 0.02216/2;                      % Positive Bollard, one propeller
             k_neg = 0.01289/2;                      % Negative Bollard, one propeller
             n_max =  sqrt((0.5*24.4 * O.g)/k_pos);    % maximum propeller rev. (rad/s)
             n_min = -sqrt((0.5*13.6 * O.g)/k_neg);    % minimum propeller rev. (rad/s)
             
-            Propeller.R = 0.1;
-            Propeller.C = 0.05;
-            Propeller.angle = pi/8;
-            Propeller.blades = 3;
-            Propeller.K = O.rho/2*pi*Propeller.R*Propeller.C*Propeller.blades;
+            
             
             % Propeller forces and moments
             n = O.Prop.n;
@@ -71,8 +117,8 @@ classdef Otter6 < Vessel
             
             nu_r = O.getWaterVelo();
             
-            Thrust = Propeller.K*Propeller.R*sin(Propeller.angle)*n.*abs(n) ...
-                - Propeller.K*cos(Propeller.angle)*abs(n)*nu_r(1);
+            Va = cos(xi)*nu_r(1) + sin(xi)*nu_r(2);
+            Thrust = O.Propeller.Tnn*abs(n).*n + O.Propeller.Tnv*abs(n).*Va;
             O.Prop.Thrust = Thrust;
             
             Thrust = [Thrust(1) 0 ; 0 Thrust(2)];
@@ -89,7 +135,9 @@ classdef Otter6 < Vessel
             v_c = O.Current.v * sin(O.Current.beta - O.State(12));     % current sway velocity
             nu_r = O.State(1:6) - [u_c v_c 0 0 0 0]';             % relative velocity vector
         end
-        function xdot = getStateDerivative(O)
+        
+        
+        function xdot = getStateDerivative(O,t,x)
             % State and current variables
             nu = O.State(1:6);  nu1 = O.State(1:3); nu2 = O.State(4:6);   % velocities
             eta = O.State(7:12);                              % positions
@@ -205,6 +253,10 @@ classdef Otter6 < Vessel
         function step(O,Ts)
             O.t = O.t + 1;
             O.State = O.State + Ts * O.getStateDerivative;
+            
+%             [~,X] = ode45(@O.getStateDerivative,[0 Ts], O.State);
+%             O.State = X(end,:)';
+            
             O.State(10:12) = wrapToPi(O.State(10:12));
             O.trim_moment = O.trim_moment + 0.05 * (O.trim_setpoint - O.trim_moment);
             

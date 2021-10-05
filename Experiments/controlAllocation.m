@@ -3,14 +3,14 @@ clc
 %%
 
 y_pont = 0.395;
-r1 = [-0.8; -y_pont; 0];                           % lever arm, left propeller (m)
-r2 = [-0.8; y_pont; 0];                            % lever arm, right propeller (m)
+r1 = [0; -y_pont; 0];                           % lever arm, left propeller (m)
+r2 = [0; y_pont; 0];                            % lever arm, right propeller (m)
 
 B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
 W = eye(6);
 iW = inv(W);
 
-T = [5 0 0 0 0 2]';
+T = [5 1 0 0 0 2]';
 
 %% Pseudo Inverse
 tau(:,1) = pinv(B)*T;
@@ -35,9 +35,25 @@ tau2 = tau(4:6,3);
 
 xi1 = atan2(tau1(2),tau1(1));
 xi2 = atan2(tau2(2),tau2(1));
-
 a1 = norm(tau1);
 a2 = norm(tau2);
+
+if xi1 > pi/2
+    xi1 = xi1-pi;
+    a1 = -a1;
+end
+if xi1 < -pi/2
+    xi1 = xi1+pi;
+    a1 = -a1;
+end
+if xi2 > pi/2
+    xi2 = xi2-pi;
+    a2 = -a2;
+end
+if xi2 < -pi/2
+    xi2 = xi2+pi;
+    a2 = -a2;
+end
 
 disp('Angles:')
 disp([xi1;xi2])
@@ -46,7 +62,7 @@ disp([a1;a2])
 
 
 %% Check
-disp('Net force an moment:')
+disp('Net force and moment:')
 T = B*[cos(xi1) 0; sin(xi1) 0; 0 0; 0 cos(xi2); 0 sin(xi2); 0 0]*[a1; a2]
 
 

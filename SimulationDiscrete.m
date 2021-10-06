@@ -62,7 +62,7 @@ for it = 1:N
     O6.step(Ts);
     % Observer
     nuhat = nuhat + L*(num - Cm*nuhat);
-    nuhat = F*nuhat + G*tau; 
+    nuhat = F*nuhat + G*tau;
     
     % Save
     History.tau_r(:,it) = tau;
@@ -78,16 +78,39 @@ for it = 1:N
 end
 disp('Simulation done!')
 
+%% Plotting
 O6.plot(T)
 
+disp('Press any key to show estimates'), pause
+close all
+% u
+title = 'Linear Velocities';
+names = ["$u_m$ ", "$\hat{u}$", "$u$"];
+niceplot(T,toKnots([History.num(1,:); History.nuhat(1,:); History.nu(1,:)],'m/s'), names, title, [".","-","-"], ["time [s]", "[knot]"], 'northwest');
+
+% v
+title = 'Linear Velocities';
+names = ["$v_m$", "$\hat{v}$", "$v$"];
+niceplot(T,toKnots([History.num(2,:); History.nuhat(2,:); History.nu(2,:)],'m/s'), names, title, [".","-","-"], ["time [s]", "[knot]"], 'north');
+
+% r
+title = 'Angular Velocities';
+names = ["$r_m$", "$\hat{r}$", "$r$"];
+niceplot(T,[History.num(3,:); History.nuhat(3,:); History.nu(3,:)], names, title, [".","-","-"], ["time [s]", "[rad/s]"], 'northeast');
 
 %% Plot
+% 
+% title = 'Linear Velocities';
+% names = ["$u_m$ ", "$v_m$", "$\hat{u}$ ", "$\hat{v}$", "$u$ ", "$v$ "];
+% niceplot(T,toKnots([History.num(1:2,:);History.nuhat(1:2,:);History.nu(1:2,:)],'m/s'), names, title, ["s","--","-"], ["time [s]", "[knot]"], 'northeast');
+% 
+% title = 'Angular Velocities';
+% names = ["$r$ ","$\hat{r}$", "$r_m$"];
+% niceplot(T,rad2deg([History.nu(3,:);History.nuhat(3,:);History.num(3,:)]*60), names, title, ["-","--","s"], ["time [s]", "[deg/min]"], 'southeast');
+% ytickformat('%.0f°')
+% 
+% title = 'Thrust';
+% names = ["$\tau_u $","$\tau_v$","$\tau_r$","$\tau_u $","$\tau_v$","$\tau_r$"];
+% niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'southwest');
 
-title = 'Linear Velocities';
-names = ["$u_m$ ", "$v_m$", "$\hat{u}$ ", "$\hat{v}$", "$u$ ", "$v$ "];
-niceplot(T,toKnots([History.num(1:2,:);History.nuhat(1:2,:);History.nu(1:2,:)],'m/s'), names, title, ["s","--","-"], ["time [s]", "[knot]"], 'northeast');
 
-title = 'Angular Velocities';
-names = ["$r$ ","$\hat{r}$", "$r_m$"];
-niceplot(T,rad2deg([History.nu(3,:);History.nuhat(3,:);History.num(3,:)]*60), names, title, ["-","--","s"], ["time [s]", "[deg/min]"], 'southeast');
-ytickformat('%.0f°')

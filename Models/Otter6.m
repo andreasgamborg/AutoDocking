@@ -342,11 +342,11 @@ classdef Otter6 < Vessel
             
             title = 'Linear Velocities';
             names = ["$u$ surge", "$v$ sway", "$w$ heave"];
-            niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["--"], ["time [s]", "[knot]"], 'northeast');
+            niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["-"], ["time [s]", "[knot]"], 'northeast');
             
             title = 'Orientation';
             names = ["$\phi$ roll", "$\theta$ pitch", "$\psi$ yaw"];
-            niceplot(T,rad2deg(O.History.Pos(4:6,:)), names, title, ["--"], ["time [s]", ""], 'south');
+            niceplot(T,rad2deg(O.History.Pos(4:6,:)), names, title, ["-"], ["time [s]", ""], 'south');
             yticks(-180:30:180)
             tl = [180:30:359 0:30:180]+"°"; tl(7) = "N"; tl(10) = "E"; tl([1,13]) = "S"; tl(4) = "W";
             yticklabels(tl)
@@ -354,7 +354,7 @@ classdef Otter6 < Vessel
             
             title = 'Angular Velocities';
             names = ["$p$ roll", "$q$ pitch", "$r$ yaw"];
-            niceplot(T, rad2deg(O.History.Velo(4:6,:))*60, names, title, ["--"], ["time [s]", "[deg/min]"], 'southeast');
+            niceplot(T, rad2deg(O.History.Velo(4:6,:))*60, names, title, ["-"], ["time [s]", "[deg/min]"], 'southeast');
             ytickformat('%.0f°')
             
             if (O.UseProppeller)
@@ -364,7 +364,7 @@ classdef Otter6 < Vessel
                 
                 title = 'Propeller Thrust';
                 names = ["P", "SB"];
-                niceplot(T, O.History.Propeller(5:6,:), names, title, ["r-","g--"], ["time [s]", "[N]"], 'southwest');
+                niceplot(T, O.History.Propeller(5:6,:), names, title, ["r-","g-"], ["time [s]", "[N]"], 'southwest');
             else
                 title = 'Thrust';
                 names = ["$\tau_u$", "$\tau_v$", "$\tau_r$"];

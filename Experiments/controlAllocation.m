@@ -10,7 +10,7 @@ B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
 W = eye(6);
 iW = inv(W);
 
-T = [5 1 0 0 0 2]';
+T = [0 0 0 0 0 0.02]';
 
 %% Pseudo Inverse
 tau(:,1) = pinv(B)*T;

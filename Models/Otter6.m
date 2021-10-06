@@ -43,19 +43,59 @@ classdef Otter6 < Vessel
         function P = getPos(O)
             P = O.State([7 8 12]);
         end
-        function x = getMeasurement(O)
+        function M = getMeasurement(O)
             x = O.State();
-            x([2 3 4 5 6 9 10 11]) = nan;
-            x = x + randn(12,1);
+            fromKnots = 1/toKnots(1);
+            rng(O.t*3+1000);
+            
+            % Furuno Doppler Speed Log DS-80 - accuracy 0.1 knot.
+            sd = 0.1 * fromKnots;
+            logSpeed = x(1) + sd*randn(1);
+            
+            % Furuno SC70. differential GPS (DGPS)
+            % assuming >5 satellitter.
+                        
+            % Compass (Heading)
+            sd = deg2rad(0.5);
+            HDT = x(12) + sd*randn(1);
+            
+            % Position (x,y)
+            sd = 5/2;                           % 5m approx. (2drms)
+            theta = rand(1)*2*pi;
+            Rn = [cos(theta); sin(theta)] * sd.*randn(1);
+            Position = x(7:8) + Rn;
+            
+            % VBW
+            % sd = 0.2*fromKnots                  % 0.2 knot
+            % VBW = norm(x(1:2)) + sd*randn(1);
+            
+            % SOG
+            sd = 0.02*fromKnots;                  % 0.02 knot
+            SOG = norm(x(1:2)) + sd*randn(1);
+            
+            % Course
+            sd = deg2rad(0.4);                  % 0.4 deg rms
+            Course = atan2(x(2),x(1)) + sd*randn(1);
+            Course = wrapToPi(Course+HDT);
+            % Rate of Turn
+            sd = deg2rad(0.4);                  % 0.4 deg/s rms
+            RoT = x(6) + sd*randn(1);
+            
+            %
+            M.SOG = SOG;
+            SOG = [cos(Course-HDT); sin(Course-HDT)]*SOG;   % in NED
+        
+            M.ym = [SOG;RoT;Position;HDT];
+            M.Course = Course;
         end
         function controlAllocation(O,T)
             
             r1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
             r2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
             B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
-
+            
             tau = pinv(B)*T;
-
+            
             
             tau1 = tau(1:3);
             tau2 = tau(4:6);
@@ -63,7 +103,7 @@ classdef Otter6 < Vessel
             xi2 = atan2(tau2(2),tau2(1));
             a1 = norm(tau1);
             a2 = norm(tau2);
-
+            
             if xi1 > pi/2
                 xi1 = xi1-pi;
                 a1 = -a1;
@@ -81,8 +121,20 @@ classdef Otter6 < Vessel
                 a2 = -a2;
             end
             
-            n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
-            n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
+            M = getMeasurement(O);
+            
+            Va1 = cos(xi1-M.Course)*M.SOG;
+            Va2 = cos(xi2-M.Course)*M.SOG;
+            Tnn = O.Propeller.Tnn;
+            Tnv = O.Propeller.Tnv;
+            
+            
+            
+            %             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
+            %             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
+            
+            n1 = sign(a1)*(sqrt(Tnv^2*Va1^2 + 4*Tnn*abs(a1))-Tnv*Va1) / (2*Tnn);
+            n2 = sign(a2)*(sqrt(Tnv^2*Va2^2 + 4*Tnn*abs(a2))-Tnv*Va2) / (2*Tnn);
             
             O.Prop.n = [n1 n2]';
             O.Prop.xi = [xi1 xi2]';
@@ -254,8 +306,8 @@ classdef Otter6 < Vessel
             O.t = O.t + 1;
             O.State = O.State + Ts * O.getStateDerivative;
             
-%             [~,X] = ode45(@O.getStateDerivative,[0 Ts], O.State);
-%             O.State = X(end,:)';
+            %             [~,X] = ode45(@O.getStateDerivative,[0 Ts], O.State);
+            %             O.State = X(end,:)';
             
             O.State(10:12) = wrapToPi(O.State(10:12));
             O.trim_moment = O.trim_moment + 0.05 * (O.trim_setpoint - O.trim_moment);

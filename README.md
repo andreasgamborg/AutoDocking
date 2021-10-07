@@ -5,8 +5,7 @@ For a more complete toolbox see [MSS toolbox](https://github.com/cybergalactic/M
 
 ### How to
 + Run `Init.m`
-+ Go to `Simulation.m` and choose what to simulate
-+ Run `Simulation.m`
++ Run one of the simulations
 
 
 ### Documentation

@@ -5,12 +5,13 @@ clc
 
 %% Init
 Ts = 1/50;
-N = 6000;
+N = 10000;
 t = 0; % Start time
 T = [];
 
 %% Real Vessel
-O6 = Otter6;
+state(12,1) = pi/2;
+O6 = Otter6(state);
 O6.UseProppeller = true;
 %% Model
 Model = 'Models/Primitive/otter3mtrx_lin.mat'
@@ -34,7 +35,8 @@ R = eye(3)*0.01;                % Measurement noise
 %% Reference
 r = [100 0 0]';
 r = [[3 0 0]' [1 0 110]' [0 -1 0]'];
-r = [[3 0 0]' [5 0 0]' [3 0 0]'];
+r = [[2 0 0]' [1 0 110]' [2 0 0]'];
+%r = [[3 0 0]' [5 0 0]' [3 0 0]'];
 rt = 1;
 
 %% Reference Scaling
@@ -98,19 +100,8 @@ title = 'Angular Velocities';
 names = ["$r_m$", "$\hat{r}$", "$r$"];
 niceplot(T,[History.num(3,:); History.nuhat(3,:); History.nu(3,:)], names, title, [".","-","-"], ["time [s]", "[rad/s]"], 'northeast');
 
-%% Plot
-% 
-% title = 'Linear Velocities';
-% names = ["$u_m$ ", "$v_m$", "$\hat{u}$ ", "$\hat{v}$", "$u$ ", "$v$ "];
-% niceplot(T,toKnots([History.num(1:2,:);History.nuhat(1:2,:);History.nu(1:2,:)],'m/s'), names, title, ["s","--","-"], ["time [s]", "[knot]"], 'northeast');
-% 
-% title = 'Angular Velocities';
-% names = ["$r$ ","$\hat{r}$", "$r_m$"];
-% niceplot(T,rad2deg([History.nu(3,:);History.nuhat(3,:);History.num(3,:)]*60), names, title, ["-","--","s"], ["time [s]", "[deg/min]"], 'southeast');
-% ytickformat('%.0f°')
-% 
-% title = 'Thrust';
-% names = ["$\tau_u $","$\tau_v$","$\tau_r$","$\tau_u $","$\tau_v$","$\tau_r$"];
-% niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'southwest');
-
+% tau
+title = 'Thrust requested vs. applied';
+names = ["$\tau_{u,app}$","$\tau_{v,app}$","$\tau_{r,app}$","$\tau_{u,req}$","$\tau_{v,req}$","$\tau_{r,req}$"];
+niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'southwest');
 

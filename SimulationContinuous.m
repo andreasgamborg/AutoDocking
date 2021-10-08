@@ -5,12 +5,13 @@ clc
 
 %% Init
 Ts = 1/50;
-N = 6000;
+N = 10000;
 t = 0; % Start time
 T = [];
 
 %% Real Vessel
-O6 = Otter6;
+state(12,1) = pi/2;
+O6 = Otter6(state);
 O6.UseProppeller = true;
 %% Model
 Model = 'Models/Primitive/otter3mtrx_lin.mat'
@@ -30,7 +31,8 @@ R = diag([0.1 0.1 1]);          % Measurement noise
 %% Reference
 r = [100 0 0]';
 r = [[3 0 0]' [1 0 110]' [0 -1 0]'];
-r = [[3 0 0]' [5 0 0]' [3 0 0]'];
+r = [[2 0 0]' [1 0 110]' [2 0 0]'];
+%r = [[3 0 0]' [5 0 0]' [3 0 0]'];
 rt = 1;
 %% Reference Scaling
 Ak = A-B*K;
@@ -63,6 +65,8 @@ for it = 1:N
     % Save
     History.course(:,it) = Mea.Course;
     History.SOG(:,it) = Mea.SOG;
+    History.tau_r(:,it) = tau;
+    History.tau_a(:,it) = O6.Thrust([1 2 6]);
     
     History.num(:,it) = num;
     History.nuhat(:,it) = nuhat;
@@ -99,23 +103,8 @@ niceplot(T,toKnots([History.num(2,:); History.nuhat(2,:); History.nu(2,:)],'m/s'
 title = 'Angular Velocities';
 names = ["$r_m$", "$\hat{r}$", "$r$"];
 niceplot(T,[History.num(3,:); History.nuhat(3,:); History.nu(3,:)], names, title, [".","-","-"], ["time [s]", "[rad/s]"], 'northeast');
-%%
-% disp('Press any key to show estimates'), pause
-%
-% title = 'Linear Velocities';
-% names = ["$u_m$ ", "$v_m$", "sog","$u$ ", "$v$ "];
-% niceplot(T,toKnots([History.num(1:2,:); History.SOG; History.nu(1:2,:)],'m/s'), names, title, ["s","s","-","-","-"], ["time [s]", "[knot]"], 'northeast');
-%
-% title = 'Angular Velocities';
-% names = ["$r$ ", "$r_m$"];
-% niceplot(T,[History.nu(3,:); History.num(3,:)], names, title, ["-","s"], ["time [s]", "[rad/s]"], 'southeast');
-% %ylim([-pi/8 pi/8])
-%
-% title = 'Heading';
-% names = ["$\phi_m$ ", "$\phi$", "$\theta_C$"];
-% niceplot(T,rad2deg([History.phim; History.phi; History.course]), names, title, ["s","-","-"], ["time [s]", "[deg]"], 'southeast');
-% ytickformat('%.0f°')
-%
-% title = 'Position';
-% names = ["$x_m$","$y_m$","$x$","$y$"];
-% niceplot(T,[History.posm; History.pos], names, title, ["s","-"], ["time [s]", "[m]"], 'southeast');
+
+% tau
+title = 'Thrust requested vs. applied';
+names = ["$\tau_u $","$\tau_v$","$\tau_r$","$\tau_u $","$\tau_v$","$\tau_r$"];
+niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'southwest');

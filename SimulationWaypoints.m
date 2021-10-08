@@ -33,9 +33,7 @@ Leta = eye(3);
 WP = [[20 10]' [40 -10]' [60 10]' [80 -10]'];
 WP = [[10 0]' [10 10]' [0 10]' [0 0]'];
 WP = [[10 0]' [10 -10]' [0 -10]' [0 0]'];
-WP = [-10 0]';
-pos = [0 0]';
-hdt = 0;
+
 %% Init State
 nuhat = [0 0 0]';
 etahat = [0 0 0]';
@@ -58,8 +56,9 @@ for it = 1:N
     end
     wpbearing = atan2(deta(2),deta(1));
     dphi = wpbearing-etahat(3);
-    nur = [10*cos(dphi); 1*sin(dphi)]*norm(deta);
-    r = [nur; norm(deta)*10*dphi];
+    nur = [20*cos(dphi); 1*sin(dphi)]*norm(deta);
+    dphi = wrapToPi(dphi);
+    r = [30; 0; 10*dphi];
     
     tau = -K*nuhat + r;
     tau6 = [tau(1:2); zeros(3,1); tau(3)];

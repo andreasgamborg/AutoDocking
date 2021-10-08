@@ -93,8 +93,18 @@ classdef Otter6 < Vessel
             r1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
             r2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
             B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
+            iW = eye(6);
             
-            tau = pinv(B)*T;
+%             tau = pinv(B)*T;
+            %% SVD
+            [U,S,V] = svd(B*iW*B');
+            S(S<eps) = 0;
+            iS = S;
+            iS(S~=0) = 1./S(S~=0);
+
+            C = iW*B'*V*iS*U';
+            tau = C*T;
+
             
             
             tau1 = tau(1:3);
@@ -122,16 +132,17 @@ classdef Otter6 < Vessel
             end
             
             M = getMeasurement(O);
+            um = M.ym(1);
+            vm = M.ym(2);
             
-            Va1 = cos(xi1-M.Course)*M.SOG;
-            Va2 = cos(xi2-M.Course)*M.SOG;
+            Va1 = cos(xi1)*um + sin(xi1)*vm;
+            Va2 = cos(xi2)*um + sin(xi2)*vm;
+            
             Tnn = O.Propeller.Tnn;
             Tnv = O.Propeller.Tnv;
             
-            
-            
-            %             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
-            %             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
+%             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
+%             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
             
             n1 = sign(a1)*(sqrt(Tnv^2*Va1^2 + 4*Tnn*abs(a1))-Tnv*Va1) / (2*Tnn);
             n2 = sign(a2)*(sqrt(Tnv^2*Va2^2 + 4*Tnn*abs(a2))-Tnv*Va2) / (2*Tnn);

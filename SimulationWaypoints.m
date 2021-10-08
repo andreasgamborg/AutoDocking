@@ -10,6 +10,7 @@ t = 0; % Start time
 T = [];
 
 %% Real Vessel
+state(12,1) = 0;
 O6 = Otter6;
 O6.UseProppeller = true;
 %% Model
@@ -30,16 +31,22 @@ R = diag([0.1 0.1 0.1]);          % Measurement noise
 %% Observer - Position
 Leta = eye(3);
 %% Waypoints
-WP = [[20 10]' [40 -10]' [60 10]' [80 -10]'];
-WP = [[10 0]' [10 10]' [0 10]' [0 0]'];
-WP = [[10 0]' [10 -10]' [0 -10]' [0 0]'];
+WP = [[20 10 0]' [40 -10 0]' [60 0 0]'];
+%WP = [[10 0 -pi/4]' [10 10 -3*pi/4]' [0 10 3*pi/4]' [0 0 pi/4]'];
+%WP = [[10 0 pi/2]' [10 10 0]' [20 10 0]'];
+%WP = [[20 0 -pi/2]'];
 
 %% Init State
 nuhat = [0 0 0]';
 etahat = [0 0 0]';
 
 iWP = 1;
-
+acceptDistance = 0.1;         %[m] Waypoint reached
+precisionDistance = 0;          %[m]
+cruiseSpeed = 1;              %[knot]
+    k1 = -70;
+    k2 = 20;
+    k3 = -2;
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
@@ -48,17 +55,24 @@ for it = 1:N
     num = ym(1:3);
     etam = ym(4:6);
     
-    deta = WP(:,iWP)-etahat(1:2);
-    if norm(deta) < 1
+    deta = WP(1:2,iWP)-etahat(1:2);
+    if norm(deta) < acceptDistance
         iWP = iWP + 1;
-        if iWP > size(WP,2), iWP = 1; end
-        deta = WP(:,iWP)-etahat(1:2);
+        if iWP > size(WP,2), break; end
+        deta = WP(1:2,iWP)-etahat(1:2);
     end
-    wpbearing = atan2(deta(2),deta(1));
-    dphi = wpbearing-etahat(3);
-    nur = [20*cos(dphi); 1*sin(dphi)]*norm(deta);
-    dphi = wrapToPi(dphi);
-    r = [30; 0; 10*dphi];
+    
+    wpb = atan2(deta(2),deta(1)); wpb = wrapToPi(wpb);
+    alpha = etahat(3)-wpb;     alpha = wrapToPi(alpha);
+    beta = wpb-WP(3,iWP);     beta = wrapToPi(beta);
+    theta = etahat(3)-WP(3,iWP);     theta = wrapToPi(theta);
+
+
+    if norm(deta) < precisionDistance
+        r = [cruiseSpeed*65/2; 0; k1*alpha+k2*beta];
+    else
+        r = [cruiseSpeed*65; 0; k1*alpha+k2*beta];
+    end
     
     tau = -K*nuhat + r;
     tau6 = [tau(1:2); zeros(3,1); tau(3)];
@@ -75,7 +89,7 @@ for it = 1:N
     etahat = etahat + Ts*detahat;
     
     % Save
-    History.dphi(:,it) = dphi; 
+    History.dphi(:,it) = alpha; 
     History.course(:,it) = Mea.Course;
     History.SOG(:,it) = Mea.SOG;
     

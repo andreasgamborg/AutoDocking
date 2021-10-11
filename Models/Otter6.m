@@ -37,6 +37,8 @@ classdef Otter6 < Vessel
             O.UseProppeller = false;
             O.Prop.xi = [0 0]';
             O.Prop.n = [0 0]';
+            O.Prop.xi_r = [0 0]';
+            O.Prop.n_r = [0 0]';
             O.Prop.Thrust = [0 0]';
             O.Propeller = O.calculatePropeller;
         end
@@ -54,7 +56,7 @@ classdef Otter6 < Vessel
             
             % Furuno SC70. differential GPS (DGPS)
             % assuming >5 satellitter.
-                        
+            
             % Compass (Heading)
             sd = deg2rad(0.5);
             HDT = x(12) + sd*randn(1);
@@ -84,7 +86,7 @@ classdef Otter6 < Vessel
             %
             M.SOG = SOG;
             SOG = [cos(Course-HDT); sin(Course-HDT)]*SOG;   % in NED
-        
+            
             M.ym = [SOG;RoT;Position;HDT];
             M.Course = Course;
         end
@@ -95,16 +97,16 @@ classdef Otter6 < Vessel
             B = [eye(3) eye(3); Smtrx(l1) Smtrx(l2)];
             iW = eye(6);
             
-%             tau = pinv(B)*T;
+            %             tau = pinv(B)*T;
             %% SVD
             [U,S,V] = svd(B*iW*B');
             S(S<eps) = 0;
             iS = S;
             iS(S~=0) = 1./S(S~=0);
-
+            
             C = iW*B'*V*iS*U';
             tau = C*Tr;
-
+            
             
             
             tau1 = tau(1:3);
@@ -140,15 +142,15 @@ classdef Otter6 < Vessel
             Tnn = O.Propeller.Tnn;
             Tnv = O.Propeller.Tnv;
             
-%             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
-%             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
+            %             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
+            %             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
             
             n1 = sign(a1)*(sqrt(Tnv^2*Va(1)^2 + 4*Tnn*abs(a1))-Tnv*Va(1)) / (2*Tnn);
             n2 = sign(a2)*(sqrt(Tnv^2*Va(2)^2 + 4*Tnn*abs(a2))-Tnv*Va(2)) / (2*Tnn);
             n = [n1 n2]';
             
-            O.Prop.n = n;
-            O.Prop.xi = xi;
+            O.Prop.n_r = n;
+            O.Prop.xi_r = xi;
             
             a = Tnn*abs(n).*n + Tnv*abs(n).*Va;
             tau = [ [cos(xi(1)) sin(xi(1)) 0 0 0 0]' [0 0 0 cos(xi(2)) sin(xi(2)) 0]' ]*a;
@@ -327,15 +329,20 @@ classdef Otter6 < Vessel
             O.State(10:12) = wrapToPi(O.State(10:12));
             O.trim_moment = O.trim_moment + 0.05 * (O.trim_setpoint - O.trim_moment);
             
+            O.Prop.n = O.Prop.n + 0.2*(O.Prop.n_r - O.Prop.n);
+            O.Prop.xi = O.Prop.xi + 0.2*(O.Prop.xi_r - O.Prop.xi);
+            
             % Save route
             O.History.Velo(:,O.t) = O.State(1:6);
             O.History.Pos(:,O.t) = O.State(7:12);
-            O.History.Propeller(:,O.t) = [O.Prop.xi; O.Prop.n; O.Prop.Thrust];
+            O.History.Propeller.state(:,O.t) = [O.Prop.xi; O.Prop.n];
+            O.History.Propeller.ref(:,O.t) = [O.Prop.xi_r; O.Prop.n_r];
+            O.History.Propeller.thrust(:,O.t) = O.Prop.Thrust;
             O.History.Thrust(:,O.t) = O.Thrust;
         end
         function plot(O, T)
             title = 'Course';
-            niceplot(O.History.Pos(1,:),O.History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'north');
+            niceplot(O.History.Pos(1,:),O.History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'west');
             axis equal
             grid
             set(gca, 'YDir','reverse')
@@ -343,7 +350,7 @@ classdef Otter6 < Vessel
             color = 'g-';
             for i = [1:1000:O.t, O.t]
                 
-                vessel = vesselplot(O.History.Pos(6,i),O.History.Propeller(1:2,i));
+                vessel = vesselplot(O.History.Pos(6,i),O.History.Propeller.state(1:2,i));
                 
                 if i == O.t
                     color = 'r-';
@@ -357,29 +364,39 @@ classdef Otter6 < Vessel
             
             title = 'Linear Velocities';
             names = ["$u$ surge", "$v$ sway", "$w$ heave"];
-            niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["-"], ["time [s]", "[knot]"], 'northeast');
+            niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["-"], ["time [s]", "[knot]"], 'north');
+                     
+            title = 'Angular Velocities';
+            names = ["$p$ roll", "$q$ pitch", "$r$ yaw"];
+            niceplot(T, rad2deg(O.History.Velo(4:6,:))*60, names, title, ["-"], ["time [s]", "[deg/min]"], 'northeast');
+            ytickformat('%.0f°')
+            
+            
+            title = 'Position';
+            names = ["$x$ north", "$y$ east", "$z$ down"];
+            niceplot(T,O.History.Pos(1:3,:), names, title, ["-"], ["time [s]", "[m]"], 'south');
             
             title = 'Orientation';
             names = ["$\phi$ roll", "$\theta$ pitch", "$\psi$ yaw"];
-            niceplot(T,rad2deg(O.History.Pos(4:6,:)), names, title, ["-"], ["time [s]", ""], 'south');
+            niceplot(T,rad2deg(O.History.Pos(4:6,:)), names, title, ["-"], ["time [s]", ""], 'southeast');
             yticks(-180:30:180)
             tl = [180:30:359 0:30:180]+"°"; tl(7) = "N"; tl(10) = "E"; tl([1,13]) = "S"; tl(4) = "W";
             yticklabels(tl)
-            
-            
-            title = 'Angular Velocities';
-            names = ["$p$ roll", "$q$ pitch", "$r$ yaw"];
-            niceplot(T, rad2deg(O.History.Velo(4:6,:))*60, names, title, ["-"], ["time [s]", "[deg/min]"], 'southeast');
-            ytickformat('%.0f°')
-            
+   
+        end
+        function plotPropeller(O, T)
             if (O.UseProppeller)
+                title = 'Propeller angle';
+                names = ["P", "SB","P", "SB"];
+                niceplot(T, [O.History.Propeller.ref(1:2,:); O.History.Propeller.state(1:2,:)], names, title, ["--","-"], ["time [s]", "[rad]"], 'northwest');
+                
                 title = 'Propeller velocity';
-                names = ["P", "SB"];
-                niceplot(T, toRPM(O.History.Propeller(3:4,:)), names, title, ["-"], ["time [s]", "[rpm]"], 'northwest');
+                names = ["P", "SB","P", "SB"];
+                niceplot(T, toRPM([O.History.Propeller.ref(3:4,:); O.History.Propeller.state(3:4,:)]), names, title, ["--","-"], ["time [s]", "[rpm]"], 'northwest');
                 
                 title = 'Propeller Thrust';
                 names = ["P", "SB"];
-                niceplot(T, O.History.Propeller(5:6,:), names, title, ["r-","g-"], ["time [s]", "[N]"], 'southwest');
+                niceplot(T, O.History.Propeller.thrust, names, title, ["r-","g-"], ["time [s]", "[N]"], 'southwest');
             else
                 title = 'Thrust';
                 names = ["$\tau_u$", "$\tau_v$", "$\tau_r$"];

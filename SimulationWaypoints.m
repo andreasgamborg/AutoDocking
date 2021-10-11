@@ -111,11 +111,11 @@ end
 disp('Simulation done!')
 
 %% Plotting
+close all
 O6.plot(T)
 title = 'Control angles';
 names = ["$\alpha$ ", "$\beta$", "$\theta$"];
-niceplot(T,rad2deg([History.ang]), names, title,...
-    [".","-","-"], ["time [s]", "[deg]"], 'southeast');
+niceplot(T,rad2deg([History.ang]), names, title, ["-"], ["time [s]", "[deg]"], 'southeast');
 ytickformat('%.0f°')
 
 disp('Press any key to show estimates'), pause

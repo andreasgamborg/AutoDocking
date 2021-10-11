@@ -6,18 +6,18 @@ N = 2000;
 T = [];
 t = 0;
 
-b = -10;
+b = -1;
 m = 0.1;
 
 A = [0 1;0 b/m];
 B = [0; 1/m];
 x = [0;0];
-r = [1; 0];
+r = [90; 0];
 
 K = place(A,B,[-10 -20])
 eig(A-B*K)
 
-umax = 40;
+umax = 80;
 for it = 1:N
     u = -K*(x - r);
     u(u>umax) = umax;

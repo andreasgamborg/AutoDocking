@@ -32,7 +32,7 @@ R = diag([0.1 0.1 1]);          % Measurement noise
 r = [100 0 0]';
 r = [[3 0 0]' [1 0 110]' [0 -1 0]'];
 r = [[2 0 0]' [1 0 110]' [2 0 0]'];
-%r = [[3 0 0]' [5 0 0]' [3 0 0]'];
+r = [[0 0 0]' [3 0 0]' [0 0 0]'];
 rt = 1;
 %% Reference Scaling
 Ak = A-B*K;
@@ -52,14 +52,14 @@ for it = 1:N
     if(it==N/4), rt = rt+1; end
     if(it==3*N/4), rt = rt+1; end
     tau = -K*nuhat + r(:,rt);
-    tau6 = [tau(1:2); zeros(3,1); tau(3)];
     
     % Input
-    O6.controlAllocation(tau6);
+    Tr([1 2 6],1) = tau;
+    Ta = O6.controlAllocation(Tr,nuhat);
     O6.step(Ts);
     
     % Observer
-    dnuhat = A*nuhat + B*tau + L*(num - Cm*nuhat);
+    dnuhat = A*nuhat + B*Ta([1 2 6]) + L*(num - Cm*nuhat);
     nuhat = nuhat + Ts*dnuhat;
     
     % Save

@@ -88,11 +88,11 @@ classdef Otter6 < Vessel
             M.ym = [SOG;RoT;Position;HDT];
             M.Course = Course;
         end
-        function controlAllocation(O,T)
+        function Ta = controlAllocation(O,Tr,nu)
             
-            r1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
-            r2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
-            B = [eye(3) eye(3); Smtrx(r1) Smtrx(r2)];
+            l1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
+            l2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
+            B = [eye(3) eye(3); Smtrx(l1) Smtrx(l2)];
             iW = eye(6);
             
 %             tau = pinv(B)*T;
@@ -103,7 +103,7 @@ classdef Otter6 < Vessel
             iS(S~=0) = 1./S(S~=0);
 
             C = iW*B'*V*iS*U';
-            tau = C*T;
+            tau = C*Tr;
 
             
             
@@ -131,12 +131,11 @@ classdef Otter6 < Vessel
                 a2 = -a2;
             end
             
-            M = getMeasurement(O);
-            um = M.ym(1);
-            vm = M.ym(2);
+            xi = [xi1 xi2]';
+            u = nu(1);
+            v = nu(2);
             
-            Va1 = cos(xi1)*um + sin(xi1)*vm;
-            Va2 = cos(xi2)*um + sin(xi2)*vm;
+            Va = cos(xi)*u + sin(xi)*v;
             
             Tnn = O.Propeller.Tnn;
             Tnv = O.Propeller.Tnv;
@@ -144,11 +143,18 @@ classdef Otter6 < Vessel
 %             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
 %             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
             
-            n1 = sign(a1)*(sqrt(Tnv^2*Va1^2 + 4*Tnn*abs(a1))-Tnv*Va1) / (2*Tnn);
-            n2 = sign(a2)*(sqrt(Tnv^2*Va2^2 + 4*Tnn*abs(a2))-Tnv*Va2) / (2*Tnn);
+            n1 = sign(a1)*(sqrt(Tnv^2*Va(1)^2 + 4*Tnn*abs(a1))-Tnv*Va(1)) / (2*Tnn);
+            n2 = sign(a2)*(sqrt(Tnv^2*Va(2)^2 + 4*Tnn*abs(a2))-Tnv*Va(2)) / (2*Tnn);
+            n = [n1 n2]';
             
-            O.Prop.n = [n1 n2]';
-            O.Prop.xi = [xi1 xi2]';
+            O.Prop.n = n;
+            O.Prop.xi = xi;
+            
+            a = Tnn*abs(n).*n + Tnv*abs(n).*Va;
+            tau = [ [cos(xi(1)) sin(xi(1)) 0 0 0 0]' [0 0 0 cos(xi(2)) sin(xi(2)) 0]' ]*a;
+            Ta = B*tau;
+            if (Ta ~= Tr), warning('could not allocate control correctly'); end
+            
         end
         function Propeller = calculatePropeller(O)
             Propeller.R = 0.1;
@@ -168,8 +174,6 @@ classdef Otter6 < Vessel
             n_max =  sqrt((0.5*24.4 * O.g)/k_pos);    % maximum propeller rev. (rad/s)
             n_min = -sqrt((0.5*13.6 * O.g)/k_neg);    % minimum propeller rev. (rad/s)
             
-            
-            
             % Propeller forces and moments
             n = O.Prop.n;
             xi =  O.Prop.xi;
@@ -180,16 +184,16 @@ classdef Otter6 < Vessel
             
             nu_r = O.getWaterVelo();
             
+            Tnn = O.Propeller.Tnn;
+            Tnv = O.Propeller.Tnv;
+            
             Va = cos(xi)*nu_r(1) + sin(xi)*nu_r(2);
-            Thrust = O.Propeller.Tnn*abs(n).*n + O.Propeller.Tnv*abs(n).*Va;
+            Thrust = Tnn*abs(n).*n + Tnv*abs(n).*Va;
             O.Prop.Thrust = Thrust;
             
-            Thrust = [Thrust(1) 0 ; 0 Thrust(2)];
-            
-            tau1 = [cos(xi)'; sin(xi)'; zeros(1,length(xi))] * Thrust;
-            tau2 = Smtrx(l1)*tau1(:,1) + Smtrx(l2)*tau1(:,2);
-            T = [sum(tau1,2); tau2];
-            
+            tau = [ [cos(xi(1)) sin(xi(1)) 0 0 0 0]' [0 0 0 cos(xi(2)) sin(xi(2)) 0]' ]*Thrust;
+            B = [eye(3) eye(3); Smtrx(l1) Smtrx(l2)];
+            T = B * tau;
         end
         function nu_r = getWaterVelo(O)
             % Calculates the velocity of the vessel relative to the water

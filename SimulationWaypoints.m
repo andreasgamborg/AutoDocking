@@ -41,12 +41,14 @@ nuhat = [0 0 0]';
 etahat = [0 0 0]';
 
 iWP = 1;
-acceptDistance = 0.1;         %[m] Waypoint reached
-precisionDistance = 0;          %[m]
-cruiseSpeed = 1;              %[knot]
+acceptDistance = 0.05;         %[m] Waypoint reached
+cruiseSpeed = 2;              %[knot]
+precisionDistance = 3;          %[m]
+precisionSpeed = 0.5;              %[knot]
+
     k1 = -70;
-    k2 = 20;
-    k3 = -2;
+    k2 = 100;
+    k3 = -10;
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
@@ -69,27 +71,27 @@ for it = 1:N
 
 
     if norm(deta) < precisionDistance
-        r = [cruiseSpeed*65/2; 0; k1*alpha+k2*beta];
+        r = [precisionSpeed*65*cos(-alpha); 0.1*precisionSpeed*65*sin(-alpha); k3*theta];
     else
         r = [cruiseSpeed*65; 0; k1*alpha+k2*beta];
     end
     
     tau = -K*nuhat + r;
-    tau6 = [tau(1:2); zeros(3,1); tau(3)];
     
     % Input
-    O6.controlAllocation(tau6);
+    Tr([1 2 6],1) = tau;
+    Ta = O6.controlAllocation(Tr,nuhat);
     O6.step(Ts);
     
     % Observer
-    dnuhat = A*nuhat + B*tau + L*(num - Cm*nuhat);
+    dnuhat = A*nuhat + B*Ta([1 2 6]) + L*(num - Cm*nuhat);
     nuhat = nuhat + Ts*dnuhat;
     
     detahat = Rot(etahat(3))*nuhat + Leta*(etam - etahat);
     etahat = etahat + Ts*detahat;
     
     % Save
-    History.dphi(:,it) = alpha; 
+    History.ang(:,it) = [alpha;beta;theta]; 
     History.course(:,it) = Mea.Course;
     History.SOG(:,it) = Mea.SOG;
     
@@ -110,6 +112,11 @@ disp('Simulation done!')
 
 %% Plotting
 O6.plot(T)
+title = 'Control angles';
+names = ["$\alpha$ ", "$\beta$", "$\theta$"];
+niceplot(T,rad2deg([History.ang]), names, title,...
+    [".","-","-"], ["time [s]", "[deg]"], 'southeast');
+ytickformat('%.0f°')
 
 disp('Press any key to show estimates'), pause
 close all
@@ -139,4 +146,5 @@ names = ["$\phi_m$ ", "$\hat{\phi}$", "$\phi$"];
 niceplot(T,rad2deg([History.etam(3,:); History.etahat(3,:); History.eta(3,:)]), names, title,...
     [".","-","-"], ["time [s]", "[deg]"], 'southeast');
 ytickformat('%.0f°')
+
 

@@ -48,14 +48,13 @@ classdef Otter6 < Vessel
         function M = getMeasurement(O)
             x = O.State();
             fromKnots = 1/toKnots(1);
-            rng(O.t*3+1000);
             
             % Furuno Doppler Speed Log DS-80 - accuracy 0.1 knot.
             sd = 0.1 * fromKnots;
             logSpeed = x(1) + sd*randn(1);
             
             % Furuno SC70. differential GPS (DGPS)
-            % assuming >5 satellitter.
+            % assuming >5 satellits.
             
             % Compass (Heading)
             sd = deg2rad(0.5);
@@ -71,9 +70,9 @@ classdef Otter6 < Vessel
             % sd = 0.2*fromKnots                  % 0.2 knot
             % VBW = norm(x(1:2)) + sd*randn(1);
             
-            % SOG
+            % Speed over Ground
             sd = 0.02*fromKnots;                  % 0.02 knot
-            SOG = norm(x(1:2)) + sd*randn(1);
+            SoG = norm(x(1:2)) + sd*randn(1);
             
             % Course
             sd = deg2rad(0.4);                  % 0.4 deg rms
@@ -83,12 +82,17 @@ classdef Otter6 < Vessel
             sd = deg2rad(0.4);                  % 0.4 deg/s rms
             RoT = x(6) + sd*randn(1);
             
-            %
-            M.SOG = SOG;
-            SOG = [cos(Course-HDT); sin(Course-HDT)]*SOG;   % in NED
-            
-            M.ym = [SOG;RoT;Position;HDT];
+            % Pack
+            M.HDT = HDT;
+            M.Position = Position;
+            M.SOG = SoG;
             M.Course = Course;
+            M.RoT = RoT;
+        end
+        function ym = measurementTransformation(O, M)
+            
+            SOG = [cos(M.Course-M.HDT); sin(M.Course-M.HDT)]*M.SOG;   % in NED
+            ym = [SOG;M.RoT;M.Position;M.HDT];
         end
         function Ta = controlAllocation(O,Tr,nu)
             
@@ -349,15 +353,11 @@ classdef Otter6 < Vessel
             
             color = 'g-';
             for i = [1:1000:O.t, O.t]
-                
                 vessel = vesselplot(O.History.Pos(6,i),O.History.Propeller.state(1:2,i));
-                
                 if i == O.t
                     color = 'r-';
                 end
-                
                 plot(vessel(1,:)+O.History.Pos(1,i), vessel(2,:)+O.History.Pos(2,i), color, 'LineWidth', 2);
-                
                 color = 'b-';
             end
             
@@ -365,7 +365,7 @@ classdef Otter6 < Vessel
             title = 'Linear Velocities';
             names = ["$u$ surge", "$v$ sway", "$w$ heave"];
             niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["-"], ["time [s]", "[knot]"], 'north');
-                     
+            
             title = 'Angular Velocities';
             names = ["$p$ roll", "$q$ pitch", "$r$ yaw"];
             niceplot(T, rad2deg(O.History.Velo(4:6,:))*60, names, title, ["-"], ["time [s]", "[deg/min]"], 'northeast');
@@ -382,7 +382,7 @@ classdef Otter6 < Vessel
             yticks(-180:30:180)
             tl = [180:30:359 0:30:180]+"°"; tl(7) = "N"; tl(10) = "E"; tl([1,13]) = "S"; tl(4) = "W";
             yticklabels(tl)
-   
+            
         end
         function plotPropeller(O, T)
             if (O.UseProppeller)

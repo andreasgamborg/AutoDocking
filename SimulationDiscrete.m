@@ -51,7 +51,7 @@ nuhat = [0 0 0]';
 disp('Running Simulation...')
 for it = 1:N
     Mea = O6.getMeasurement();
-    ym = Mea.ym;
+    ym = O6.measurementTransformation(Mea);
     num = ym(1:3);
     
     if(it==N/4), rt = rt+1; end

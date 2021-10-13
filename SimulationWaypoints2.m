@@ -29,36 +29,37 @@ R = diag([0.1 0.1 0.1]);          % Measurement noise
 [L,P,E] = lqe(A,B,Cm,Q,R);
 
 %% Observer - Position
-Leta = eye(3)*10;
+Leta = diag([1 1 5]);
 %% Waypoints
 %WP = [[20 10 0]' [40 -10 0]' [60 0 0]'];
 WP = [[20 0 pi/4]' [20 20 3*pi/4]' [0 20 -3*pi/4]' [0 0 -pi/4]'];
 %WP = [[10 0 pi/2]' [10 10 0]' [20 10 0]'];
 %WP = [[20 10 0]'];
 %WP = [[0 0 0]' [100 100 pi/2]'  [-50 100 pi/2]' [0 0 0]'];
-WP = [[20 0 pi/4]' [20 -20 3*pi/4]' [0 -20 -3*pi/4]' [0 0 -pi/4]'...
-    [0 20 pi/4]' [-20 20 3*pi/4]' [-20 0 -3*pi/4]' [0 0 -pi/4]'];
+% 
+WP = [[20 0 -pi/4]' [20 -20 -3*pi/4]' [0 -20 3*pi/4]' [0 0 pi/2]'...
+    [0 20 3*pi/4]' [-20 20 -3*pi/4]' [-20 0 -pi/4]' [0 0 0]'];
 
 %% Init State
 nuhat = [0 0 0]';
 etahat = [0 0 0]';
 
 iWP = 1;
-acceptDistance = 1;           %[m]    Waypoint reached
-acceptAngle = pi;           %[rad]  Waypoint reached
+acceptDistance = 0.1;           %[m]    Waypoint reached
+acceptAngle = 0.0175;           %[rad]  Waypoint reached
 acceptSpeed = 2;              %[m/s]  Waypoint reached
 
-cruiseSpeed = 1;              %[knot]
-precisionDistance = 0;          %[m]
+cruiseSpeed = 2;              %[knot]
+precisionDistance = 2;          %[m]
 precisionSpeed = 0.5;              %[knot]
 
 k1 = 100;
-k2 = -60;
-k3 = -1000;
+k2 = 80;
+k3 = -100;
 
 
 %% Main Loop
-disp('Running Simulation...')
+disp('Running Simulation...');
 for it = 1:N
     Mea = O6.getMeasurement();
     ym = O6.measurementTransformation(Mea);
@@ -70,7 +71,7 @@ for it = 1:N
     
     if (norm(deltaG(1:2,:)) < acceptDistance) && (abs(deltaG(3)) < acceptAngle) && (norm(num(1:2)) < acceptSpeed)
         iWP = iWP + 1;
-        if iWP > size(WP,2), break; end
+        if iWP > size(WP,2),disp('Final WayPoint reached'); break; end
         deltaG = WP(:,iWP)-etahat;
     end
     
@@ -78,16 +79,18 @@ for it = 1:N
     R = [  cos(psi)   -sin(psi)    
            sin(psi)    cos(psi)   ];
     deltaL = R * deltaG(1:2);
+    
+    bearG = atan2(deltaG(2),deltaG(1));
+    bearL = atan2(deltaL(2),deltaL(1));
        
-    alpha = atan2(deltaL(2),deltaL(1)); 
-    alpha = wrapToPi(alpha);
-    beta = alpha-WP(3,iWP);     beta = wrapToPi(beta);
-    theta = alpha + beta;     theta = wrapToPi(theta);
+    alpha = bearL;                  alpha = wrapToPi(alpha);
+    beta = bearG-WP(3,iWP);         beta = wrapToPi(beta);
+    theta = etahat(3)-WP(3,iWP);           theta = wrapToPi(theta);
     
     
     if norm(deltaG(1:2,:)) < precisionDistance
-        %r = [precisionSpeed*65*cos(-alpha); precisionSpeed*65*sin(-alpha); k3*theta];
-        r = [precisionSpeed*65; 0; k1*alpha + k2*beta];
+        speed = (cruiseSpeed-precisionSpeed)*norm(deltaG(1:2,:))/precisionDistance + precisionSpeed;
+        r = [speed*65*cos(alpha); speed*65*sin(alpha); k3*theta];
     else
         r = [cruiseSpeed*65; 0; k1*alpha + k2*beta];
     end
@@ -127,7 +130,7 @@ for it = 1:N
     t = t+Ts;
     
 end
-disp('Simulation done!')
+disp('Simulation done!');
 
 %% Plotting
 close all

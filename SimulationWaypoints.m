@@ -29,10 +29,10 @@ R = diag([0.1 0.1 0.1]);          % Measurement noise
 [L,P,E] = lqe(A,B,Cm,Q,R);
 
 %% Observer - Position
-Leta = eye(3);
+Leta = diag([1 1 5]);
 %% Waypoints
-WP = [[20 10 0]' [40 -10 0]' [60 0 0]'];
-%WP = [[10 0 -pi/4]' [10 10 -3*pi/4]' [0 10 3*pi/4]' [0 0 pi/4]'];
+%WP = [[20 10 0]' [40 -10 0]' [60 0 0]'];
+WP = [[10 0 pi/4]' [10 10 3*pi/4]' [0 10 -3*pi/4]' [0 0 -pi/4]'];
 %WP = [[10 0 pi/2]' [10 10 0]' [20 10 0]'];
 %WP = [[20 0 -pi/2]'];
 
@@ -46,14 +46,14 @@ cruiseSpeed = 2;              %[knot]
 precisionDistance = 3;          %[m]
 precisionSpeed = 0.5;              %[knot]
 
-    k1 = -70;
-    k2 = 100;
-    k3 = -10;
+k1 = -700;
+k2 = 100;
+k3 = -10;
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
     Mea = O6.getMeasurement();
-    ym = Mea.ym;
+    ym = O6.measurementTransformation(Mea);
     num = ym(1:3);
     etam = ym(4:6);
     
@@ -68,8 +68,8 @@ for it = 1:N
     alpha = etahat(3)-wpb;     alpha = wrapToPi(alpha);
     beta = wpb-WP(3,iWP);     beta = wrapToPi(beta);
     theta = etahat(3)-WP(3,iWP);     theta = wrapToPi(theta);
-
-
+    
+    
     if norm(deta) < precisionDistance
         r = [precisionSpeed*65*cos(-alpha); 0.1*precisionSpeed*65*sin(-alpha); k3*theta];
     else
@@ -91,7 +91,7 @@ for it = 1:N
     etahat = etahat + Ts*detahat;
     
     % Save
-    History.ang(:,it) = [alpha;beta;theta]; 
+    History.ang(:,it) = [alpha;beta;theta];
     History.course(:,it) = Mea.Course;
     History.SOG(:,it) = Mea.SOG;
     

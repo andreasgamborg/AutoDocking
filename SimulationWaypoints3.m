@@ -32,7 +32,7 @@ R = diag([0.1 0.1 0.1]);          % Measurement noise
 Leta = diag([1 1 5]);
 %% Waypoints
 WP = {WayPoint([20 0]',0) WayPoint([20 20]' , pi/2) WayPoint([0 20]', pi) WayPoint([0 0]', -pi/2)};
-WP{3}.precisionMode = true;
+%WP{3}.precisionMode = true;
 
 %% Init State
 nuhat = [0 0 0]';
@@ -40,7 +40,7 @@ etahat = [0 0 0]';
 
 iWP = 1;
 acceptDistance = 0.05;         %[m] Waypoint reached
-cruiseSpeed = 2;              %[knot]
+cruiseSpeed = 5;              %[knot]
 precisionDistance = 3;          %[m]
 precisionSpeed = 0.5;              %[knot]
 
@@ -75,11 +75,13 @@ for it = 1:N
     beta = bearG-WP{iWP}.heading;         beta = wrapToPi(beta);
     theta = etahat(3)-WP{iWP}.heading;           theta = wrapToPi(theta);
     
+            d = norm(deltaG(1:2,:));
     if WP{iWP}.precisionMode && norm(deltaG(1:2,:)) < precisionDistance
         speed = (cruiseSpeed-precisionSpeed)*norm(deltaG(1:2,:))/precisionDistance + precisionSpeed;
         r = [speed*65*cos(alpha); speed*65*sin(alpha); k3*theta];
     else
-        r = [cruiseSpeed*65; 0; k1*alpha + k2*beta];
+        speed = cruiseSpeed/(1+5*exp(-0.1*d));
+        r = [speed*65; 0; k1*alpha + k2*beta];
     end
     
     tau = -K*nuhat + r;

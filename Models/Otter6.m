@@ -388,15 +388,16 @@ classdef Otter6 < Vessel
             if (O.UseProppeller)
                 title = 'Propeller angle';
                 names = ["P", "SB","P", "SB"];
-                niceplot(T, [O.History.Propeller.ref(1:2,:); O.History.Propeller.state(1:2,:)], names, title, ["--","-"], ["time [s]", "[rad]"], 'northwest');
+                niceplot(T, rad2deg([O.History.Propeller.ref(1:2,:); O.History.Propeller.state(1:2,:)]), names, title, ["--","-"], ["time [s]", ""], 'west');
+                ytickformat('%.0f°')
                 
                 title = 'Propeller velocity';
                 names = ["P", "SB","P", "SB"];
-                niceplot(T, toRPM([O.History.Propeller.ref(3:4,:); O.History.Propeller.state(3:4,:)]), names, title, ["--","-"], ["time [s]", "[rpm]"], 'northwest');
+                niceplot(T, toRPM([O.History.Propeller.ref(3:4,:); O.History.Propeller.state(3:4,:)]), names, title, ["--","-"], ["time [s]", "[rpm]"], 'center');
                 
                 title = 'Propeller Thrust';
                 names = ["P", "SB"];
-                niceplot(T, O.History.Propeller.thrust, names, title, ["r-","g-"], ["time [s]", "[N]"], 'southwest');
+                niceplot(T, O.History.Propeller.thrust, names, title, ["r-","g-"], ["time [s]", "[N]"], 'east');
             else
                 title = 'Thrust';
                 names = ["$\tau_u$", "$\tau_v$", "$\tau_r$"];

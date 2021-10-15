@@ -120,21 +120,12 @@ for jt = 1:4
         dnuhat = A*nuhat + B*Ta([1 2 6]) + L*(num - Cm*nuhat);
         nuhat = nuhat + Ts*dnuhat;
         
-        detahat = Rot(etahat(3))*nuhat + Leta*(etam - etahat);
+        
+        etae = etam - etahat;
+        etae(3) = wrapToPi(etae(3));
+        detahat = Rot(etahat(3))*nuhat + Leta*etae;
         etahat = etahat + Ts*detahat;
-        
-        % Save
-        History.ang(:,it) = [alpha;beta;theta];
-        History.course(:,it) = Mea.Course;
-        History.SOG(:,it) = Mea.SOG;
-        
-        History.num(:,it) = num;
-        History.nuhat(:,it) = nuhat;
-        History.nu(:,it) = O6.State([1 2 6]);
-        
-        History.etam(:,it) = etam;
-        History.etahat(:,it) = etahat;
-        History.eta(:,it) = O6.State([7 8 12]);
+        etahat(3) = wrapToPi(etahat(3));
         
         % Time update
         T = [T t];

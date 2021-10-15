@@ -6,6 +6,7 @@ clc
 %% Init
 
 path = 'Rute luftfoto.png';
+path = 'Rute søkort.png';
 pixelsPerMeter = 3;
 background = imread(path);
 [N,M,~] = size(background);
@@ -15,12 +16,6 @@ fig = figure('Name','Track','DefaultAxesFontSize',20,'OuterPosition', [100      
 imagesc([-M/pixelsPerMeter M/pixelsPerMeter], [-N/pixelsPerMeter N/pixelsPerMeter], background); hold on
 axis equal
 
-n= 4;
-[x,y,button] = ginput(1)
-
-P = ginput(n);
-WP = [P' ; zeros(1,n)];
-
 %% Iit
 Ts = 1/50;
 N = 12000;
@@ -28,9 +23,10 @@ t = 0; % Start time
 T = [];
 
 %% Real Vessel
-state([7 8],1) = WP(1:2,1);
-state(12,1) = 0;
-O6 = Otter6(state);
+% state([7 8],1) = WP(1:2,1);
+% state(12,1) = 0;
+% O6 = Otter6(state);
+O6 = Otter6;
 O6.UseProppeller = true;
 %% Model
 Model = 'Models/Primitive/otter3mtrx_lin.mat'
@@ -50,82 +46,103 @@ R = diag([0.1 0.1 0.1]);          % Measurement noise
 %% Observer - Position
 Leta = eye(3);
 
-%% Init State
+%% Init Observer State
 nuhat = [0 0 0]';
-etahat = [-150 0 0]';
+etahat = [0 0 0]';
+%% Init Guidance System
+% Velocity
+umax = 3;              %[knot]
+umin = 0.5;              %[knot]
+k = 0.15;
 
-iWP = 2;
-acceptDistance = 0.1;           %[m]    Waypoint reached
-
-cruiseSpeed = 5;              %[knot]
-precisionDistance = 2;          %[m]
-precisionSpeed = 0.5;              %[knot]
-
-k1 = -1000;
-k2 = 800;
-k3 = -1000;
+% Rotation
+k1 = 100;
+k2 = 20;
+k3 = -100;
 %% Main Loop
-disp('Running Simulation...')
-for it = 1:N
-    Mea = O6.getMeasurement();
-    ym = O6.measurementTransformation(Mea);
-    num = ym(1:3);
-    etam = ym(4:6);
+lastindex = 1;
+for jt = 1:4
+    P = ginput(1);
+    WP = WayPoint(P',nan);
     
-    
-    deta = WP(1:2,iWP)-etahat(1:2);
-    dpsi = WP(3,iWP)-etahat(3);
-    if (norm(deta) < acceptDistance)
-        iWP = iWP + 1;
-        if iWP > size(WP,2), break; disp('Broke'); end
-        deta = WP(1:2,iWP)-etahat(1:2);
+    disp('Running Simulation...')
+    for it = 1:N
+        Mea = O6.getMeasurement();
+        ym = O6.measurementTransformation(Mea);
+        num = ym(1:3);
+        etam = ym(4:6);
+        
+        deltaG = WP.pos-etahat(1:2);
+        if (norm(deltaG) < WP.accept.distance)
+            if(isnan(WP.heading))
+                disp('WayPoint reached');
+                break;
+            elseif(abs(WP.heading - etahat(3)) < WP.accept.angle)
+                disp('WayPoint reached');
+                break;
+            end
+        end
+        
+        psi = -etam(3);
+        R = [  cos(psi)   -sin(psi)
+            sin(psi)    cos(psi)   ];
+        deltaL = R * deltaG(1:2);
+        
+        bearG = atan2(deltaG(2),deltaG(1));
+        bearL = atan2(deltaL(2),deltaL(1));
+        
+        alpha = bearL;                  alpha = wrapToPi(alpha);
+        if(isnan(WP.heading))
+            beta = 0;
+            theta = 0;
+        else
+            beta = bearG-WP.heading;        beta = wrapToPi(beta);
+            theta = etahat(3)-WP.heading;   theta = wrapToPi(theta);
+        end
+        
+        d = norm(deltaG(1:2,:));
+        speed = umax*umin/(umin+(umax-umin)*exp(-k*d));
+        
+        if WP.precisionMode && norm(deltaG(1:2,:)) < WP.accept.distance
+            r = [speed*65*cos(alpha); speed*65*sin(alpha); k3*theta];
+        else
+            r = [speed*65; 0; k1*alpha + k2*beta];
+        end
+        
+        tau = -K*nuhat + r;
+        
+        % Input
+        Tr([1 2 6],1) = tau;
+        Ta = O6.controlAllocation(Tr,nuhat);
+        O6.step(Ts);
+        
+        % Observer
+        dnuhat = A*nuhat + B*Ta([1 2 6]) + L*(num - Cm*nuhat);
+        nuhat = nuhat + Ts*dnuhat;
+        
+        detahat = Rot(etahat(3))*nuhat + Leta*(etam - etahat);
+        etahat = etahat + Ts*detahat;
+        
+        % Save
+        History.ang(:,it) = [alpha;beta;theta];
+        History.course(:,it) = Mea.Course;
+        History.SOG(:,it) = Mea.SOG;
+        
+        History.num(:,it) = num;
+        History.nuhat(:,it) = nuhat;
+        History.nu(:,it) = O6.State([1 2 6]);
+        
+        History.etam(:,it) = etam;
+        History.etahat(:,it) = etahat;
+        History.eta(:,it) = O6.State([7 8 12]);
+        
+        % Time update
+        T = [T t];
+        t = t+Ts;
+        
     end
-    
-    wpb = atan2(deta(2),deta(1)); wpb = wrapToPi(wpb);
-    alpha = etahat(3)-wpb;     alpha = wrapToPi(alpha);
-    beta = wpb-WP(3,iWP);     beta = wrapToPi(beta);
-    theta = etahat(3)-WP(3,iWP);     theta = wrapToPi(theta);
-    
-    
-    if norm(deta) < precisionDistance
-        r = [precisionSpeed*65*cos(-alpha); precisionSpeed*65*sin(-alpha); k3*theta];
-    else
-        r = [cruiseSpeed*65; 0; k1*alpha+k2*beta];
-    end
-    
-    tau = -K*nuhat + r;
-    
-    % Input
-    Tr([1 2 6],1) = tau;
-    Ta = O6.controlAllocation(Tr,nuhat);
-    O6.step(Ts);
-    
-    % Observer
-    dnuhat = A*nuhat + B*Ta([1 2 6]) + L*(num - Cm*nuhat);
-    nuhat = nuhat + Ts*dnuhat;
-    
-    detahat = Rot(etahat(3))*nuhat + Leta*(etam - etahat);
-    etahat = etahat + Ts*detahat;
-    
-    % Save
-    %History.ang(:,it) = [alpha;beta;theta];
-    %     History.course(:,it) = Mea.Course;
-    %     History.SOG(:,it) = Mea.SOG;
-    %
-    %     History.num(:,it) = num;
-    %     History.nuhat(:,it) = nuhat;
-    %     History.nu(:,it) = O6.State([1 2 6]);
-    %
-    %     History.etam(:,it) = etam;
-    %     History.etahat(:,it) = etahat;
-    %     History.eta(:,it) = O6.State([7 8 12]);
-    %
-    % Time update
-    T = [T t];
-    t = t+Ts;
-    
+    index = O6.t;
+    period = lastindex : index;
+    plot(O6.History.Pos(1,period),O6.History.Pos(2,period),'Linewidth',3);
+    lastindex = index;
 end
-disp('Simulation done!')
-
-plot(O6.History.Pos(1,:),O6.History.Pos(2,:),'Linewidth',3);
-

@@ -31,27 +31,27 @@ R = diag([0.1 0.1 0.1]);          % Measurement noise
 %% Observer - Position
 Leta = diag([1 1 5]);
 %% Waypoints
-WP = {WayPoint([20 0]',pi/2) WayPoint([20 20]' , pi) WayPoint([0 20]', -pi/2) WayPoint([0 0]', 0)};
-%WP = {WayPoint([100 0]',0)};
-% WP{2}.setAccept(0.05,0.0175);
-% WP{2}.precisionMode = true;
+% WP = {WayPoint([20 0]',pi/2) WayPoint([20 20]' , pi) WayPoint([0 20]', -pi/2) WayPoint([0 0]', 0)};
+% WP = {WayPoint([100 0]',0)};
+
 
 WP = {  WayPoint([20 0]', -pi/4) WayPoint([20 -20]', -3*pi/4) WayPoint([0 -20]', 3*pi/4) WayPoint([0 0]', pi/2) ...
         WayPoint([0 20]', 3*pi/4) WayPoint([-20 20]', -3*pi/4) WayPoint([-20 0]', -pi/4) WayPoint([0 0]', 0)    };
 
-
-%% Init State
+% WP{2}.setAccept(0.05,0.0175);
+% WP{2}.precisionMode = true;
+iWP = 1;
+%% Init Observer State
 nuhat = [0 0 0]';
 etahat = [0 0 0]';
 
-iWP = 1;
-acceptDistance = 0.5;         %[m] Waypoint reached
+%% Init Guidance System
+% Velocity
 umax = 3;              %[knot]
 umin = 0.5;              %[knot]
+k = 0.15;
 
-precisionDistance = 3;          %[m]
-precisionSpeed = 0.5;              %[knot]
-
+% Rotation
 k1 = 100;
 k2 = 20;
 k3 = -100;
@@ -84,11 +84,9 @@ for it = 1:N
     theta = etahat(3)-WP{iWP}.heading;           theta = wrapToPi(theta);
     
     d = norm(deltaG(1:2,:));
-    k = 0.15;
     speed = umax*umin/(umin+(umax-umin)*exp(-k*d));
     
     if WP{iWP}.precisionMode && norm(deltaG(1:2,:)) < WP{iWP}.accept.distance
-%         speed = (cruiseSpeed-precisionSpeed)*norm(deltaG(1:2,:))/precisionDistance + precisionSpeed;
         r = [speed*65*cos(alpha); speed*65*sin(alpha); k3*theta];
     else
         r = [speed*65; 0; k1*alpha + k2*beta];

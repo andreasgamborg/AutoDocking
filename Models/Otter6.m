@@ -363,7 +363,7 @@ classdef Otter6 < Vessel
             
             
             title = 'Linear Velocities';
-            names = ["$u$ surge", "$v$ sway", "$w$ heave"];
+            names = ["$u$ surge speed", "$v$ sway speed", "$w$ heave speed"];
             niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["-"], ["time [s]", "[knot]"], 'north');
             
             title = 'Angular Velocities';

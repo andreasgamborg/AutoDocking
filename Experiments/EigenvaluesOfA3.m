@@ -45,10 +45,14 @@ syms u
 A3 = subs(A3,u,3/toKnots(1));
 lambda = eig(A3); %lambda = simplify(lambda,100);
 
-r = [-10:0.1:10];
+r = [-3:0.001:3];
 HL2 = eval(lambda);
 
 RE = real(HL2);
-
+IM = imag(HL2);
 figure
 plot(r,RE')
+figure
+plot(r,IM')
+figure
+plot(RE',IM','o')

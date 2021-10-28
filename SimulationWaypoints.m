@@ -89,6 +89,8 @@ for it = 1:N
     
     detahat = Rot(etahat(3))*nuhat + Leta*(etam - etahat);
     etahat = etahat + Ts*detahat;
+    etahat(3) = wrapToPi(etahat(3));
+
     
     % Save
     History.ang(:,it) = [alpha;beta;theta];

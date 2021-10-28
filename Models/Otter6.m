@@ -344,7 +344,7 @@ classdef Otter6 < Vessel
             O.History.Propeller.thrust(:,O.t) = O.Prop.Thrust;
             O.History.Thrust(:,O.t) = O.Thrust;
         end
-        function plot(O, T)
+        function plot(O, T, WP)
             title = 'Course';
             niceplot(O.History.Pos(1,:),O.History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'west');
             axis equal
@@ -360,7 +360,20 @@ classdef Otter6 < Vessel
                 plot(vessel(1,:)+O.History.Pos(1,i), vessel(2,:)+O.History.Pos(2,i), color, 'LineWidth', 2);
                 color = 'b-';
             end
-            
+            if (nargin > 2)
+                arrow = [0 2 0 0; 1 0 -1 1]*0.5;
+                x = 0:0.1:2*pi;
+                for it = 1:length(WP)
+                    pos = WP{it}.pos;
+                    h = -WP{it}.heading;
+                    ad = WP{it}.accept.distance;
+                    R = [cos(h) sin(h); -sin(h) cos(h)];
+                    Rarrow = R*arrow+pos;
+                    plot(pos(1),pos(2),'ko','LineWidth', 4);
+                    plot(Rarrow(1,:),Rarrow(2,:),'k','LineWidth', 4);
+                    plot(cos(x)*ad+pos(1),sin(x)*ad+pos(2),'k','LineWidth', 4);
+                end
+            end
             
             title = 'Linear Velocities';
             names = ["$u$", "$v$", "$w$"];

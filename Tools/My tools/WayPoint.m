@@ -16,9 +16,10 @@ classdef WayPoint < handle
             if (nargin < 1),  error('Provide location of WayPoint'); end
             if (nargin < 2)
                 heading = 0;
+                WP.setAccept(1,pi); 
             end
             if (nargin < 3)  
-                WP.setAccept(1,pi); 
+                WP.setAccept(0.5,pi/36); % 50cm  5deg 
                 WP.precisionMode = false;
             else
                 WP.setAccept(aDist, aAngle)

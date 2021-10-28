@@ -94,6 +94,10 @@ for it = 1:N
     else
         r = [cruiseSpeed*65; 0; k1*alpha + k2*beta];
     end
+
+    
+    speed = (cruiseSpeed-precisionSpeed)*norm(deltaG(1:2,:))/precisionDistance + precisionSpeed;
+    r = [speed*65; 0; k1*alpha + k2*beta];
     
     tau = -K*nuhat + r;
     

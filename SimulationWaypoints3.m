@@ -5,7 +5,7 @@ clc
 
 %% Init
 Ts = 1/50;
-N = 20000;
+N = 30000;
 t = 0; % Start time
 T = [];
 
@@ -36,9 +36,15 @@ Ld = diag([2 2 8]);
 % WP = {WayPoint([20 0]',pi/2) WayPoint([20 20]' , pi) WayPoint([0 20]', -pi/2) WayPoint([0 0]', 0)};
 %WP = {WayPoint([-10 0]',pi)};
 
-
-WP = {  WayPoint([20 0]', -pi/4) WayPoint([20 -20]', -3*pi/4) WayPoint([0 -20]', 3*pi/4) WayPoint([0 0]', pi/2) ...
-       WayPoint([0 20]', 3*pi/4) WayPoint([-20 20]', -3*pi/4) WayPoint([-20 0]', -pi/4) WayPoint([0 0]', 0)    };
+   k = 30;
+   ad = 0.2;
+   aa = pi/36;
+WP = {  WayPoint([k 0]', -pi/4, ad, aa) WayPoint([k -k]', -3*pi/4, ad, aa)  ...
+        WayPoint([0 -k]', 3*pi/4, ad, aa) WayPoint([0 k]', 3*pi/4, ad, aa)  ...
+        WayPoint([-k k]', -3*pi/4, ad, aa) WayPoint([-k 0]', 0, ad, aa)     ...
+        WayPoint([0 0]', 0, ad, aa)    };
+   %WP = {  WayPoint([k 0]', -pi/4) WayPoint([k -k]', -pi/2)  };
+   %WP = {  WayPoint([20 5]', 0) WayPoint([k 0]', -pi/2) WayPoint([k -k]', -pi/2)  };
 
 % WP{2}.setAccept(0.05,0.0175);
 % WP{2}.precisionMode = true;
@@ -51,14 +57,14 @@ dhat = [0 0 0]';
 
 %% Init Guidance System
 % Velocity
-umax = 3;              %[knot]
+umax = 2;              %[knot]
 umin = 0.5;              %[knot]
 k = 0.15;
 
 % Rotation
 k1 = 100;
 k2 = 20;
-k3 = -100;
+k3 = 100;
 
 %% Main Loop
 disp('Running Simulation...')
@@ -85,16 +91,29 @@ for it = 1:N
     
     alpha = bearL;                  alpha = wrapToPi(alpha);
     beta = bearG-WP{iWP}.heading;         beta = wrapToPi(beta);
-    theta = etahat(3)-WP{iWP}.heading;           theta = wrapToPi(theta);
+    theta = WP{iWP}.heading-etahat(3);           theta = wrapToPi(theta);
     
     d = norm(deltaG(1:2,:));
-    speed = umax*umin/(umin+(umax-umin)*exp(-k*d));
+    speed = 0.1+0.9*umax*umin/(umin+(umax-umin)*exp(-k*(d-3)));
     
-    if WP{iWP}.precisionMode && norm(deltaG(1:2,:)) < WP{iWP}.accept.distance
-        r = [speed*65*cos(alpha); speed*65*sin(alpha); k3*theta];
-    else
-        r = [speed*65; 0; k1*alpha + k2*beta];
-    end
+    
+    
+%     if WP{iWP}.precisionMode && norm(deltaG(1:2,:)) < 4% WP{iWP}.accept.distance
+%         r = [speed*65*cos(alpha); speed*65*sin(alpha)/10; k3*theta];
+%     else
+%         r = [speed*65; 0; k1*alpha + k2*beta];
+%     end
+    
+       
+    
+    d = d/speed;
+    k2 = 0.6*exp(-((d-6)/3).^2);
+    k3 = exp(-0.8*(d));
+    k1 = 1-k2-k3;
+
+    r = [speed*65; speed*65*k3*sin(alpha); 100*wrapToPi(k1*alpha + k2*beta + k3*theta)];
+    %r = [speed*65*cos(alpha); 0; 100*(k1*alpha + k2*beta + k3*theta)];
+
     
     tau = -K*nuhat + r;
     % Input
@@ -119,6 +138,7 @@ for it = 1:N
     
     % Save
     History.ang(:,it) = [alpha;beta;theta];
+    History.gains(:,it)  = [k1;k2;k3;d];
     History.course(:,it) = Mea.Course;
     History.SOG(:,it) = Mea.SOG;
     
@@ -139,11 +159,15 @@ disp('Simulation done!')
 
 %% Plotting
 close all
-O6.plot(T)
+O6.plot(T,WP)
 title = 'Control angles';
 names = ["$\alpha$ ", "$\beta$", "$\theta$"];
 niceplot(T,rad2deg([History.ang]), names, title, ["-"], ["time [s]", "[deg]"], 'southeast');
 ytickformat('%.0f°')
+
+title = 'gain parameter';
+names = ["$k_1$","$k_2$","$k_3$","$d$"];
+niceplot(T,[History.gains], names, title, ["-"], ["time [s]", " "], 'southwest');
 
 disp('Press any key to show estimates'), pause
 close all

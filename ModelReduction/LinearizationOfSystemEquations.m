@@ -1,7 +1,7 @@
 close all
 clear all
 clc
-load('Models/Primitive/SysEq6DOF_lin.mat')
+load('Models/Primitive/SysEq6DOF.mat')
 syms u v w p q r x y z phi theta psi    real
 
 %% Find Jacobian
@@ -41,4 +41,4 @@ S.C = C;
 S.Cm = Cm;
 S.linarizationPoint = lp;
 
-save('Models/Primitive/otter3mtrx_lin.mat','-struct','S')
+% save('Models/Primitive/otter3mtrx_lin.mat','-struct','S')

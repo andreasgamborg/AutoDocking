@@ -19,5 +19,17 @@ k2 = exp(-((d-6)/3).^2);
         k2 = 0.6*exp(-((d-6)/3).^2);
     k3 = exp(-0.8*(d));
     k1 = 1-k2-k3;
+    
+    
 figure
 plot(d,[k1; k2; k3])
+
+
+%%
+umin = 0.1;
+umax = 3;
+speed = umin + (umax-umin)./(1+exp(-0.8*(d-10)));
+
+figure
+plot(d,speed)
+

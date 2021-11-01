@@ -58,13 +58,14 @@ dhat = [0 0 0]';
 %% Init Guidance System
 % Velocity
 umax = 2;              %[knot]
-umin = 0.5;              %[knot]
-k = 0.15;
+umin = 0.1;              %[knot]
+k = 0.8;
 
 % Rotation
 k1 = 100;
 k2 = 20;
 k3 = 100;
+speed = 1;
 
 %% Main Loop
 disp('Running Simulation...')
@@ -94,8 +95,8 @@ for it = 1:N
     theta = WP{iWP}.heading-etahat(3);           theta = wrapToPi(theta);
     
     d = norm(deltaG(1:2,:));
-    speed = 0.1+0.9*umax*umin/(umin+(umax-umin)*exp(-k*(d-3)));
-    
+    %speed = umin+(umax-umin)* 1/(1+exp(-k*(d-5)));
+
     
     
 %     if WP{iWP}.precisionMode && norm(deltaG(1:2,:)) < 4% WP{iWP}.accept.distance
@@ -106,12 +107,16 @@ for it = 1:N
     
        
     
-    d = d/speed;
-    k2 = 0.6*exp(-((d-6)/3).^2);
+    speed = 0.1+0.9*umax*umin/(umin+(umax-umin)*exp(-k*(d-3)));
+    speed = umin + (umax-umin)./(1+exp(-k*(d-3)));
+    
+        d = d/speed;
+
+    k2 = 0.5*exp(-((d-8)/4).^2);
     k3 = exp(-0.8*(d));
     k1 = 1-k2-k3;
 
-    r = [speed*65; speed*65*k3*sin(alpha)*0.8; 100*wrapToPi(k1*alpha + k2*beta + k3*theta)];
+    r = [speed*65; speed*65*k3*sin(alpha); 100*wrapToPi(k1*alpha + k2*beta + k3*theta)];
     %r = [speed*65*cos(alpha); 0; 100*(k1*alpha + k2*beta + k3*theta)];
 
     

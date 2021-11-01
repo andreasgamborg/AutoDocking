@@ -333,8 +333,14 @@ classdef Otter6 < Vessel
             O.State(10:12) = wrapToPi(O.State(10:12));
             O.trim_moment = O.trim_moment + 0.05 * (O.trim_setpoint - O.trim_moment);
             
-            O.Prop.n = O.Prop.n + 0.2*(O.Prop.n_r - O.Prop.n);
-            O.Prop.xi = O.Prop.xi + 0.2*(O.Prop.xi_r - O.Prop.xi);
+            dn =    0.5*(O.Prop.n_r - O.Prop.n);
+            O.Prop.n = O.Prop.n + Ts*dn;
+            
+            dxi =   3*(O.Prop.xi_r - O.Prop.xi);
+            dximax = deg2rad(10);
+            dxi(dxi>dximax) = dximax;
+            dxi(dxi<-dximax) = -dximax;
+            O.Prop.xi = O.Prop.xi + Ts*dxi;
             
             % Save route
             O.History.Velo(:,O.t) = O.State(1:6);

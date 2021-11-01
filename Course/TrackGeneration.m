@@ -18,12 +18,14 @@ clc
 
 %%
 
-x = 0:2:100;
-y = 10*sin(0.1*x);
+x = 0:5:200;
+y = 20*sin(0.05*x);
 
 P = [x;y];
 %%
-
+close all
 figure 
 plot(P(1,:),P(2,:))
 axis equal
+%%
+save('Course/sinecurve.mat','P');

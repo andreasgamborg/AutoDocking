@@ -34,7 +34,7 @@ classdef Otter6 < Vessel
                 Payload.r = [0;0;0];
             end
             O = O@Vessel(State,Payload);
-            O.UseProppeller = false;
+            O.UseProppeller = true;
             O.Prop.xi = [0 0]';
             O.Prop.n = [0 0]';
             O.Prop.xi_r = [0 0]';

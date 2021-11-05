@@ -175,18 +175,11 @@ classdef Otter6 < Vessel
             % Propeller data
             l1 = [-0.2; -O.y_pont; 0];                           % lever arm, left propeller (m)
             l2 = [-0.2; O.y_pont; 0];                            % lever arm, right propeller (m)
-            k_pos = 0.02216/2;                      % Positive Bollard, one propeller
-            k_neg = 0.01289/2;                      % Negative Bollard, one propeller
-            n_max =  sqrt((0.5*24.4 * O.g)/k_pos);    % maximum propeller rev. (rad/s)
-            n_min = -sqrt((0.5*13.6 * O.g)/k_neg);    % minimum propeller rev. (rad/s)
+           
             
             % Propeller forces and moments
             n = O.Prop.n;
             xi =  O.Prop.xi;
-            
-            % Propeller forces and moments
-            n(n>n_max) = n_max;             % saturation, physical limits
-            n(n<n_min) = n_min;             % saturation, physical limits
             
             nu_r = O.getWaterVelo();
             
@@ -333,8 +326,16 @@ classdef Otter6 < Vessel
             O.State(10:12) = wrapToPi(O.State(10:12));
             O.trim_moment = O.trim_moment + 0.05 * (O.trim_setpoint - O.trim_moment);
             
+            
+            k_pos = 0.02216/2;                      % Positive Bollard, one propeller
+            k_neg = 0.01289/2;                      % Negative Bollard, one propeller
+            n_max =  sqrt((0.5*24.4 * O.g)/k_pos);    % maximum propeller rev. (rad/s)
+            n_min = -sqrt((0.5*13.6 * O.g)/k_neg);    % minimum propeller rev. (rad/s)
             dn =    0.5*(O.Prop.n_r - O.Prop.n);
             O.Prop.n = O.Prop.n + Ts*dn;
+            % Propeller forces and moments
+            O.Prop.n(O.Prop.n>n_max) = n_max;             % saturation, physical limits
+            O.Prop.n(O.Prop.n<n_min) = n_min;             % saturation, physical limits
             
             dxi =   3*(O.Prop.xi_r - O.Prop.xi);
             dximax = deg2rad(10);
@@ -350,7 +351,7 @@ classdef Otter6 < Vessel
             O.History.Propeller.thrust(:,O.t) = O.Prop.Thrust;
             O.History.Thrust(:,O.t) = O.Thrust;
         end
-        function plot(O, T, WP)
+        function plot(O, T, Course)
             title = 'Course';
             niceplot(O.History.Pos(1,:),O.History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'west');
             axis equal
@@ -366,7 +367,9 @@ classdef Otter6 < Vessel
                 plot(vessel(1,:)+O.History.Pos(1,i), vessel(2,:)+O.History.Pos(2,i), color, 'LineWidth', 2);
                 color = 'b-';
             end
-            if (nargin > 2)
+            
+            if (nargin > 2) && iscell(Course) && isa(Course{1}, 'WayPoint')
+                    WP = Course;
                 arrow = [0 2 0 0; 1 0 -1 1]*0.5;
                 x = 0:0.1:2*pi;
                 for it = 1:length(WP)
@@ -379,8 +382,11 @@ classdef Otter6 < Vessel
                     plot(Rarrow(1,:),Rarrow(2,:),'k','LineWidth', 4);
                     plot(cos(x)*ad+pos(1),sin(x)*ad+pos(2),'k','LineWidth', 4);
                 end
+            elseif (nargin > 2)
+                 P = Course;
+                 plot(P(1,:),P(2,:),'k-','LineWidth', 2);
             end
-            
+
             title = 'Linear Velocities';
             names = ["$u$", "$v$", "$w$"];
             niceplot(T,toKnots(O.History.Velo(1:3,:)), names, title, ["-"], ["time [s]", "[knot]"], 'north');

@@ -12,7 +12,7 @@ T = [];
 %% Real Vessel
 state(12,1) = 0;
 O6 = Otter6(state);
-O6.UseProppeller = true;
+
 %% Model
 Model = 'Models/Primitive/otter3mtrx_lin.mat'
 load(Model);
@@ -33,7 +33,9 @@ Leta = diag([2 2 8]);
 Ld = diag([2 2 8]);
 
 %% Course
-load('sinecurve.mat')
+% load('sinecurve.mat')
+load('square.mat')
+
 closestPoint = 1;
 nP = length(P);
 lookaheaddist = 8;
@@ -56,6 +58,7 @@ for it = 1:N
 
     dist = sqrt(sum(Pdiff.^2));
     closestPoint = find(dist==min(dist));
+    if(closestPoint+1 == nP), disp('Final point reached'); break;    end
     
     for p = closestPoint+1:nP
        if dist(p) > lookaheaddist
@@ -63,15 +66,17 @@ for it = 1:N
            break;
        end
     end
-    
+
     psi = -etahat(3);
     R = [  cos(psi)   -sin(psi)
         sin(psi)    cos(psi)   ];
+    
     deltaL = R * Pdiff(:,target);
+    
     alpha = atan2(deltaL(2),deltaL(1));
     alpha = wrapToPi(alpha);
     
-    r = [65; 0; 100*alpha];
+    r = [65; 0; 20*alpha];
 
     tau = -K*nuhat + r;
     % Input
@@ -116,7 +121,7 @@ disp('Simulation done!')
 
 %% Plotting
 close all
-O6.plot(T)
+O6.plot(T,P)
 title = 'Control angles';
 names = ["$\alpha$ "];
 niceplot(T,rad2deg([History.ang]), names, title, ["-"], ["time [s]", "[deg]"], 'southeast');

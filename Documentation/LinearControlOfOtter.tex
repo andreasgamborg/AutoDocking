@@ -315,4 +315,29 @@ $\bm{\nu}_r = \bm{\nu} - \bm{\nu}_c$
 	+ \bm{C}_{A}(\bm{\nu}_r)\bm{\nu} -  \bm{C}_{A}(\bm{\nu}_r)\bm{\nu}_c \\
 	+ \bm{D}(\bm{\nu}_r) \bm{\nu} - \bm{D}(\bm{\nu}_r) \bm{\nu}_c  +\bm{G}\bm{\eta} = \bm{\tau} + \bm{w}(t)
 \end{multline}
+
+
+\begin{align}
+	\bm{M}_{RB}\bm{\dot{\nu}} + \bm{M}_{A}\bm{\dot{\nu}_r} + \bm{C}_{RB}(\bm{\nu})\bm{\nu} + \bm{C}_{A}(\bm{\nu}_r)\bm{\nu}_r
+	+ \bm{D}(\bm{\nu}_r)\bm{\nu}_r +\bm{G}\bm{\eta} & = \bm{\tau} + \bm{w}(t) \\
+	\bm{\dot{\eta}}                                 & = \bm{J}(\eta)\bm{\nu}
+\end{align}
+Using Property 8.1 of Fossen
+\begin{equation}
+	\bm{M}_{RB}\bm{\dot{\nu}} + \bm{C}_{RB}(\bm{\nu})\bm{\nu} \equiv \bm{M}_{RB}\bm{\dot{\nu}_r} + \bm{C}_{RB}(\bm{\nu}_r)\bm{\nu}_r
+\end{equation}
+We can rewrite the system using only the relative velocity
+\begin{align}
+	\bm{M}_{RB}\bm{\dot{\nu}_r} + \bm{M}_{A}\bm{\dot{\nu}_r} + \bm{C}_{RB}(\bm{\nu}_r)\bm{\nu}_r + \bm{C}_{A}(\bm{\nu}_r)\bm{\nu}_r
+	+ \bm{D}(\bm{\nu}_r)\bm{\nu}_r +\bm{G}\bm{\eta} & = \bm{\tau} + \bm{w}(t) \\
+	\bm{\dot{\eta}}                                 & = \bm{J}(\eta)\bm{\nu}
+\end{align}
+\begin{equation}
+	\bm{J}(\eta)\bm{\nu}_c^l = \bm{\nu}_c^g
+\end{equation}
+\begin{align}
+	\bm{M}_{RB}\bm{\dot{\nu}_r} + \bm{M}_{A}\bm{\dot{\nu}_r} + \bm{C}_{RB}(\bm{\nu}_r)\bm{\nu}_r + \bm{C}_{A}(\bm{\nu}_r)\bm{\nu}_r
+	+ \bm{D}(\bm{\nu}_r)\bm{\nu}_r +\bm{G}\bm{\eta} & = \bm{\tau} + \bm{w}(t)               \\
+	\bm{\dot{\eta}}                                 & = \bm{J}(\eta)\bm{\nu}_r+\bm{\nu}_c^g
+\end{align}
 \end{document}

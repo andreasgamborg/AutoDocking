@@ -1,0 +1,159 @@
+\documentclass[12pt,a4]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{
+	a4paper,
+	left=20mm,
+	right=20mm,
+	top=20mm,
+	bottom=20mm,
+}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{ amssymb }
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\begin{document}
+\section{The system}
+
+The system is describe by
+\begin{align*}
+	\dot{\phi} & = r                                                     \\
+	\dot{r}    & = (r_{1x} + r_{2x})\sin(\xi)(T_{nn} n^2 + T_{nv} V_A n) \\
+	\dot{\xi}  & = \tau_\xi
+\end{align*}
+Assuming constant propeller speed
+\begin{align*}
+	\dot{\phi} & = r                                \\
+	\dot{r}    & = k_r\sin(\xi)(k_{nn} + k_{nv}V_A) \\
+	\dot{\xi}  & = \tau_\xi
+\end{align*}
+Rewriting this
+\begin{align*}
+	\dot{x_1} & = x_2 + \bm{\phi}_1^T \vartheta         \\
+	\dot{x_2} & = k \sin(x_3) + \bm{\phi}_2^T \vartheta \\
+	\dot{x_3} & = u
+\end{align*}
+where $k = k_{r} + k_{nn}$.
+The control objective can then by formulated as a reference tracking of $x_1$.
+
+\begin{align*}
+	z_1 & \triangleq x_1 - r                                 \\
+	z_2 & \triangleq x_2 - \alpha_1(x_1,\hat{\vartheta})     \\
+	z_3 & \triangleq x_3 - \alpha_2(x_1,x_2,\hat{\vartheta})
+\end{align*}
+
+\subsection{Step 1}
+The dynamics of $z_1$ is
+
+\begin{align}
+	z_1       & \triangleq x_1 - r                                                        \\
+	\dot{z_1} & = \dot{x_1} - \dot{r}                                                     \\
+	          & = x_2 + \bm{\phi}_1^T \vartheta - \dot{r}                                 \\
+	          & = z_2 + \alpha_1(x_1,\hat{\vartheta}) + \bm{\phi}_1^T \vartheta - \dot{r}
+\end{align}
+
+Considering $x_2$ as a virtual input we can find a stabilizing function for $z_1$
+
+\begin{equation}
+	\alpha_1 = - k_1 z_1 -  \bm{\phi}_1^T \hat{\vartheta} + \dot{r}
+\end{equation}
+
+If $x_2$ takes the value of $\alpha_1$ we have
+
+\begin{equation}
+	\dot{z_1} = x_2 + \bm{\phi}_1^T \vartheta - \dot{r} = - k_1 z_1 -  \bm{\phi}_1^T \hat{\vartheta} + \dot{r}+\bm{\phi}_1^T \vartheta - \dot{r} = - k_1 z_1 - \bm{\phi}_1^T \tilde{\vartheta}
+\end{equation}
+As $\hat{\vartheta} = \vartheta + \tilde{\vartheta}$. We see that if the estimate $\hat{\vartheta}$ is perfect ($\tilde{\vartheta}=0$), then $z_1$ will be GES for $k_1>0$. In practice we will of course never have a perfect estimate.
+
+
+
+Choosing the Lyapunov function
+
+\begin{align}
+	V_1       & = \frac{1}{2} z_1^2 + \frac{1}{2 \gamma} \tilde{\vartheta}^2                                                       \\
+	\dot{V}_1 & = z_1 \dot{z_1}   +   \frac{1}{\gamma}\tilde{\vartheta}\dot{\tilde{\vartheta}}                                     \\
+	          & = z_1 (z_2 + \alpha_1(x_1,\hat{\vartheta}) + \bm{\phi}_1^T \vartheta - \dot{r})
+	+ \frac{1}{\gamma}\tilde{\vartheta}\dot{\hat{\vartheta}}                                                                       \\
+	          & = z_1 (z_2 - k_1 z_1 -  \bm{\phi}_1^T \hat{\vartheta} + \dot{r} + \bm{\phi}_1^T \vartheta - \dot{r})
+	+ \frac{1}{\gamma}\tilde{\vartheta}\dot{\hat{\vartheta}}                                                                       \\
+	          & = z_1 z_2 - k_1 z_1^2 - z_1\bm{\phi}_1^T \tilde{\vartheta}
+	+ \frac{1}{\gamma}\tilde{\vartheta}\dot{\hat{\vartheta}}                                                                       \\
+	          & = z_1 z_2 - k_1 z_1^2 + \tilde{\vartheta} \left( -z_1\bm{\phi}_1^T + \frac{1}{\gamma}\dot{\hat{\vartheta}} \right)
+\end{align}
+Where the property $\dot{\tilde{\vartheta}} = \dot{\hat{\vartheta}}$ was used. This is due to $\vartheta$ being constant or slowly varying.
+We see that chosing the adaptation law
+\begin{align}
+	\dot{\hat{\vartheta}} & = \gamma   z_1\bm{\phi}_1^T   \\
+	                      & =\gamma(x_1 - r)\bm{\phi}_1^T \\
+	                      & = \gamma \tau_1(x_1)
+\end{align}
+Will make the last terms vanish.
+
+\subsection{Step 2}
+The dynamics of $z_2$ is
+\begin{align}
+	z_2       & \triangleq x_2 - \alpha_1(x_1,\hat{\vartheta})                                                                                             \\
+	\dot{z_2} & = \dot{x_2} - \frac{\partial \alpha_1}{\partial x_1}  \dot{x_1} - \frac{\partial \alpha_1}{\partial \hat{\vartheta}} \dot{\hat{\vartheta}} \\
+	          & = k v + \bm{\phi}_2^T \vartheta + k_1 \dot{x_1}+ \phi_1^T \dot{\hat{\vartheta}}
+\end{align}
+
+\begin{equation}
+	v = \frac{- \bm{\phi}_2^T \hat{\vartheta} - k_1 \dot{x_1} - \phi_1^T\dot{\hat{\vartheta}} - k_2 z_2}{k}
+\end{equation}
+
+
+\begin{equation}
+	\dot{z_2} = - k_2 z_2 - \bm{\phi}_2^T \tilde{\vartheta}
+\end{equation}
+
+
+
+\begin{align}
+	\dot{z_2} & = k v + \bm{\phi}_2^T \vartheta + k_1 \dot{x_1}+ \phi_1^T \dot{\hat{\vartheta}}                                                                                        \\
+	          & = - \bm{\phi}_2^T \hat{\vartheta} - k_1 \dot{x_1} - \phi_1^T\dot{\hat{\vartheta}} - k_2 z_2 + \bm{\phi}_2^T \vartheta + k_1 \dot{x_1} + \phi_1^T \dot{\hat{\vartheta}} \\
+	          & = - \bm{\phi}_2^T \hat{\vartheta}  - \phi_1^T\dot{\hat{\vartheta}} - k_2 z_2 + \bm{\phi}_2^T \vartheta + \phi_1^T \dot{\hat{\vartheta}}                                \\
+\end{align}
+
+Choosing the Lyapunov function
+
+\begin{align}
+	V_2       & = V_1 + \frac{1}{2} z_2^2                                                                                     \\
+	\dot{V}_2 & = z_1 z_2 - k_1 z_1^2 + \tilde{\vartheta} \left( -\tau_1(x_1) + \frac{1}{\gamma}\dot{\hat{\vartheta}} \right)
+	+ z_2 \left(  k v + \bm{\phi}_2^T \vartheta + k_1 \dot{x_1}+ \phi_1^T \dot{\hat{\vartheta}} \right)
+\end{align}
+
+\begin{equation}
+	v = \frac{-k_2 z_2 - z_1 - \bm{\phi}_2^T \hat{\vartheta} -  k_1 \dot{x_1} -\phi_1^T \dot{\hat{\vartheta}}}{k}
+\end{equation}
+
+\begin{equation}
+	\dot{V}_2  = - k_1 z_1^2 - k_2 z_2^2 + \tilde{\vartheta} \left( -\tau_1(x_1) + \frac{1}{\gamma}\dot{\hat{\vartheta}} - z_2\bm{\phi}_2^T	\right)
+\end{equation}
+
+We see that chosing the adaptation law
+\begin{align}
+	\dot{\hat{\vartheta}} & = \gamma   ( z_1\bm{\phi}_1^T + z_2\bm{\phi}_2^T ) \\
+\end{align}
+Will make the last terms vanish.
+
+
+\begin{align}
+	v & = \frac{-k_2 (x_2-(- k_1 z_1 -  \bm{\phi}_1^T \hat{\vartheta} + \dot{r}))- (x_1-r)- \bm{\phi}_2^T \hat{\vartheta} -  k_1 \dot{x_1} -\phi_1^T \dot{\hat{\vartheta}}}{k}                  \\
+	v & = \frac{-k_2 x_2 - k_2 k_1 z_1 -  k_2\bm{\phi}_1^T \hat{\vartheta} + k_2\dot{r} -x_1 +r -\bm{\phi}_2^T \hat{\vartheta} -  k_1\dot{x_1} -\phi_1^T \dot{\hat{\vartheta}}}{k}              \\
+	v & = \frac{-k_2 x_2 - k_2 k_1 x_1 + k_2 k_1 r -  k_2\bm{\phi}_1^T \hat{\vartheta} + k_2\dot{r} -x_1 + r -\bm{\phi}_2^T \hat{\vartheta} -  k_1\dot{x_1} -\phi_1^T \dot{\hat{\vartheta}}}{k} \\
+	v & = \frac{-k_2 x_2 + (r - x_1)(k_2 k_1 + 1) + k_2\dot{r}  -  k_1\dot{x_1} - \phi_1^T( k_2\hat{\vartheta} + \dot{\hat{\vartheta}} ) -\bm{\phi}_2^T \hat{\vartheta}  }{k}
+\end{align}
+
+\begin{align}
+	-1 & \leq v \leq 1                                                                                                         \\
+	-1 & \leq \frac{-k_2 z_2 - z_1 - \bm{\phi}_2^T \hat{\vartheta} -  k_1 \dot{x_1} -\phi_1^T \dot{\hat{\vartheta}}}{k} \leq 1 \\
+	-k & \leq -k_2 z_2 - z_1 - \bm{\phi}_2^T \hat{\vartheta} -  k_1 \dot{x_1} -\phi_1^T \dot{\hat{\vartheta}}\leq k
+\end{align}
+
+\end{document}

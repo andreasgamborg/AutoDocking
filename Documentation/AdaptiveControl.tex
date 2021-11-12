@@ -1,0 +1,159 @@
+\documentclass[12pt,a4]{article}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{geometry}
+\usepackage{float}
+\geometry{
+	a4paper,
+	left=20mm,
+	right=20mm,
+	top=20mm,
+	bottom=20mm,
+}
+% Useful packages
+\usepackage{amsmath}
+\usepackage{ amssymb }
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+\begin{document}
+\section{The system}
+The vessel is modelled by
+\begin{align}
+	\bm{M}_{RB}\bm{\dot{\nu}} + \bm{M}_{A}\bm{\dot{\nu}_r} + \bm{C}_{RB}(\bm{\nu})\bm{\nu} + \bm{C}_{A}(\bm{\nu}_r)\bm{\nu}_r
+	+ \bm{D}(\bm{\nu}_r)\bm{\nu}_r +\bm{G}\bm{\eta} & = \bm{\tau} + \bm{w}(t) \\
+	\bm{\dot{\eta}}                                 & = \bm{J}(\eta)\bm{\nu}
+\end{align}
+where
+\begin{align}
+	\bm{M}_{RB} & = \begin{bmatrix}
+		m & 0 & 0     \\
+		0 & m & 0     \\
+		0 & 0 & I_{z}
+	\end{bmatrix} &
+	\bm{M}_{A}  & = \begin{bmatrix}
+		-X_{\dot{u}} & 0            & 0            \\
+		0            & -Y_{\dot{v}} & -Y_{\dot{r}} \\
+		0            & -N_{\dot{v}} & -N_{\dot{r}}
+	\end{bmatrix}
+\end{align}
+
+
+\begin{align}
+	\bm{C}_{RB} & = \begin{bmatrix}
+		0           & 0   & -m(x_g r +v) \\
+		0           & 0   & mu           \\
+		m(x_g r +v) & -mu & 0
+	\end{bmatrix} &
+	\bm{C}_{A}  & = \begin{bmatrix}
+		0                                                        & 0               & Y_{\dot{v}} v_r + \frac{1}{2}(N_{\dot{v}} Y_{\dot{r}})r \\
+		0                                                        & 0               & -X_{\dot{u}} u_r                                        \\
+		-Y_{\dot{v}} v_r + \frac{1}{2}(N_{\dot{v}} Y_{\dot{r}})r & X_{\dot{u}} u_r & 0
+	\end{bmatrix}
+\end{align}
+
+\begin{align}
+	\bm{D}_{L}  & = \begin{bmatrix}
+		-X_u & 0    & 0    \\
+		0    & -Y_v & -Y_r \\
+		0    & -N_v & -N_r
+	\end{bmatrix} &
+	\bm{D}_{NL} & = \begin{bmatrix}
+		-X_{|u|u}|u| - X_{uuu}u^2 & 0                           & 0                           \\
+		0                         & -Y_{|v|v}|v_r| -Y_{|r|v}|r| & -Y_{|v|r}|v_r| -Y_{|r|r}|r| \\
+		0                         & -N_{|v|v}|v_r| -N_{|r|v}|r| & -N_{|v|r}|v_r| -N_{|r|r}|r|
+	\end{bmatrix}
+\end{align}
+
+Using property 8.1 of [Fossen] we can define the dynamics using only the water relative velocity $\bm{\nu}_r$
+\begin{align}
+	\label{eq:SysEq} \bm{M}\bm{\dot{\nu}}_r + \bm{C}(\bm{\nu}_r)\bm{\nu}_r +\bm{D}(\bm{\nu}_r)\bm{\nu}_r & = \bm{\tau}                           \\
+	\bm{\dot{\eta}}                                                                                      & = \bm{J}(\eta)\bm{\nu}_r + \bm{\nu}_c
+\end{align}
+Where $\bm{\nu}_c$ is the velocity of the water current in global coordinates. And
+\begin{align}
+	\bm{M}             & = \bm{M}_{RB} + \bm{M}_{A}                         \\
+	\bm{C}(\bm{\nu}_r) & = \bm{C}_{RB}(\bm{\nu}_r) + \bm{C}_{A}(\bm{\nu}_r)
+\end{align}
+Additionally $\bm{G}\bm{\eta} = \bm{0}$ as there exists no restoring forces in surge, sway and yaw.
+Isolating the acceleration $\bm{\dot{\nu}}_r$ in (\ref{eq:SysEq}) we have
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (\bm{\tau} -\bm{C}(\bm{\nu}_r)\bm{\nu}_r -\bm{D}(\bm{\nu}_r)\bm{\nu}_r ) \\
+	\bm{\dot{\eta}}  & = \bm{J}(\eta)\bm{\nu}_r + \bm{\nu}_c
+\end{align}
+Assuming that $\bm{M}$ and $\bm{C}$ as well as the linear damping coefficients $X_u$ and $N_r$ are known. The system equation can be split into a known part and a unknown or uncertain part. This can be written as
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (\bm{\tau} -\bm{C}(\bm{\nu}_r)\bm{\nu}_r + \bm{d} \bm{\nu}_r + \Phi(\bm{\nu}_r )\bm{\vartheta}) \\
+	\bm{\dot{\eta}}  & = \bm{J}(\eta)\bm{\nu}_r + \bm{\nu}_c
+\end{align}
+Where
+\begin{equation}
+	\bm{d} = \begin{bmatrix}
+		X_u & 0 & 0   \\
+		0   & 0 & 0   \\
+		0   & 0 & N_r
+	\end{bmatrix}
+\end{equation}
+And the uncertain part is described by
+\begin{align}
+	\Phi(\bm{\nu}_r)^T & = \begin{bmatrix}
+		|u|u & 0 & 0 \\ u^3 & 0 & 0 \\ 0& v &0 \\ 0& r &0 \\ 0&|v|v&0  \\ 0&|r|v&0  \\ 0&|v|r&0  \\ 0&|r|r&0  \\ 0&0& v \\ 0&0& |v|v \\ 0&0&|r|v \\ 0&0&|v|r \\ 0&0&|r|r
+	\end{bmatrix}
+	                   &
+	\bm{\vartheta}     & = \begin{bmatrix}
+		X_{|u|u} \\ X_{uuu} \\ Y_v \\ Y_r \\ Y_{|v|v} \\ Y_{|r|v} \\ Y_{|v|r} \\ Y_{|r|r} \\ N_v \\ N_{|v|v} \\ N_{|r|v} \\ N_{|v|r} \\ N_{|r|r}
+	\end{bmatrix}
+\end{align}
+Lastly the known part is collected in a function $\bm{f}(\bm{\nu}_r)$.
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (\bm{d} \bm{\nu}_r -\bm{C}(\bm{\nu}_r)\bm{\nu}_r) + \bm{M}^{-1} (\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta}) \\
+	                 & =  \bm{f}(\bm{\nu}_r) + \bm{M}^{-1} (\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta})                                           \\
+\end{align}
+The system is now in a form where the known part $\bm{f}(\bm{\nu}_r)$, the uncertain part $\Phi(\bm{\nu}_r )\bm{\vartheta}$ and the input $\bm{\tau}$
+are clear to distinguish from one another.
+
+\section{Adaptive Control}
+\subsection{Control Design}
+The control objective is to minimize $\tilde{\nu}(t) \triangleq \nu(t) - r_{\nu}(t)$.
+That is to minimize the difference (error) between the velocity of the vessel $\nu(t)$ and the reference velocity $r_{\nu}(t)$.
+A new variable $\bm{z}$ is introduced to describe this difference.
+
+\begin{equation}
+	\bm{z} \triangleq \nu - r_{\nu}
+\end{equation}
+Choosing the Lyapunov function
+
+\begin{equation}
+	V \triangleq \frac{1}{2}\bm{z}^T\bm{z} + \frac{1}{2}\bm{\tilde{\vartheta}}^T\bm{\Gamma}^{-1}\bm{\tilde{\vartheta}}
+\end{equation}
+Which has the derivative
+
+\begin{align}
+	\dot{V} & = \bm{z}^T\dot{\bm{z}}
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\tilde{\vartheta}}}                                                                         \\
+	        & = \bm{z}^T\left(\bm{\dot{\nu}}_r  - \dot{r_{\nu}}\right)
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
+	        & = \bm{z}^T\left(\bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left(\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta}\right)  - \dot{r_{\nu}}\right)
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
+	        & = \bm{z}^T\left(\bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left(\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\hat{\vartheta}}\right) - \dot{r_{\nu}}\right)
+	+ \bm{z}^T\bm{M}^{-1} \Phi(\bm{\nu}_r )\bm{\tilde{\vartheta}}
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
+	        & = \bm{z}^T\left(\bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left(\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\hat{\vartheta}}\right) - \dot{r_{\nu}}\right)
+	+ \bm{\tilde{\vartheta}}^T \left(\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} +\Phi(\bm{\nu}_r )^T \bm{M}^{-T} \bm{z} \right)                     \\
+\end{align}
+It is seen that choosing the control law
+\begin{equation}
+	\bm{\tau} = \bm{M} \left( -\bm{K}\bm{z} -\bm{f}(\bm{\nu}_r) +\dot{r_{\nu}} \right) -\Phi(\bm{\nu}_r )\bm{\hat{\vartheta}}
+\end{equation}
+And the adaptation law
+\begin{equation}
+	\bm{\dot{\hat{\vartheta}}} = - \bm{\Gamma} \Phi(\bm{\nu}_r )^T \bm{M}^{-T} \bm{z}
+\end{equation}
+Will makes the Lyapunov function derivative become
+\begin{equation}
+	\dot{V} = -\bm{z}^T \bm{K} \bm{z}
+\end{equation}
+Which is negative definite if $\bm{K}$ is positive definite.
+\end{document}

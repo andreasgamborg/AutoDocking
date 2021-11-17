@@ -46,5 +46,5 @@ S.dnu = dnu;
 S.eta = eta;
 S.deta = deta;
 S.tau = tau;
-%save('Models/Primitive/SysEq6DOF_lin.mat','-struct','S')
+%save('Models/Primitive/X.mat','-struct','S')
 

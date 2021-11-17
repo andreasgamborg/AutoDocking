@@ -35,7 +35,7 @@ latexeq("\bm{D}",D)
 
 
 %% Add D to model
-% S = load('Models/Primitive/otter6mtrx.mat');
-% S.D = D;
-% save('Models/Primitive/otter6mtrx.mat','-struct','S');
+S = load('Models/Primitive/otter6mtrx.mat');
+    S.D = D;
+save('Models/Primitive/otter6mtrx.mat','-struct','S');
 

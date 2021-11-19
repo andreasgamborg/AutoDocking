@@ -85,7 +85,7 @@ Isolating the acceleration $\bm{\dot{\nu}}_r$ in (\ref{eq:SysEq}) we have
 \end{align}
 Assuming that $\bm{M}$ and $\bm{C}$ as well as the linear damping coefficients $X_u$ and $N_r$ are known. The system equation can be split into a known part and a unknown or uncertain part. This can be written as
 \begin{align}
-	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (\bm{\tau} -\bm{C}(\bm{\nu}_r)\bm{\nu}_r + \bm{d} \bm{\nu}_r + \Phi(\bm{\nu}_r )\bm{\vartheta}) \\
+	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (\bm{\tau} -\bm{C}(\bm{\nu}_r)\bm{\nu}_r - \bm{d} \bm{\nu}_r + \Phi(\bm{\nu}_r )\bm{\vartheta}) \\
 	\bm{\dot{\eta}}  & = \bm{J}(\eta)\bm{\nu}_r + \bm{\nu}_c
 \end{align}
 Where
@@ -108,13 +108,13 @@ And the uncertain part is described by
 \end{align}
 Lastly the known part is collected in a function $\bm{f}(\bm{\nu}_r)$.
 \begin{align}
-	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (\bm{d} \bm{\nu}_r -\bm{C}(\bm{\nu}_r)\bm{\nu}_r) + \bm{M}^{-1} (\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta}) \\
-	                 & =  \bm{f}(\bm{\nu}_r) + \bm{M}^{-1} (\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta})                                           \\
+	\bm{\dot{\nu}}_r & = \bm{M}^{-1} (-\bm{C}(\bm{\nu}_r)\bm{\nu}_r -\bm{d} \bm{\nu}_r) + \bm{M}^{-1} (\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta}) \\
+	                 & =  \bm{f}(\bm{\nu}_r) + \bm{M}^{-1} (\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta})                                            \\
 \end{align}
 The system is now in a form where the known part $\bm{f}(\bm{\nu}_r)$, the uncertain part $\Phi(\bm{\nu}_r )\bm{\vartheta}$ and the input $\bm{\tau}$
 are clear to distinguish from one another.
 
-\section{Adaptive Control}
+\section{Adaptive Velocity Control}
 \subsection{Control Design}
 The control objective is to minimize $\tilde{\nu}(t) \triangleq \nu(t) - r_{\nu}(t)$.
 That is to minimize the difference (error) between the velocity of the vessel $\nu(t)$ and the reference velocity $r_{\nu}(t)$.
@@ -155,5 +155,139 @@ Will makes the Lyapunov function derivative become
 \begin{equation}
 	\dot{V} = -\bm{z}^T \bm{K} \bm{z}
 \end{equation}
-Which is negative definite if $\bm{K}$ is positive definite.
+Which is negative semi-definite if $\bm{K}$ is positive definite.
+
+Barbalat’s lemma
+
+\section{Adaptive Position Control}
+
+\subsection{The system}
+As in the previous section the system is
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\bm{\tau} + \bm{M}^{-1}\Phi(\bm{\nu}_r )\bm{\vartheta} \\
+	\bm{\dot{\eta}}  & = \bm{R}(\psi)\bm{\nu}_r + \bm{\nu}_c
+\end{align}
+where the known part $\bm{f}(\bm{\nu}_r)$, the uncertain part $\Phi(\bm{\nu}_r )\bm{\vartheta}$ and the input $\bm{\tau}$
+of the system is separated. Considering the water currents as a unknown quantity
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\bm{\tau} + \bm{M}^{-1}\Phi_2 (\bm{\nu}_r )\bm{\vartheta} \\
+	\bm{\dot{\eta}}  & = \bm{R}(\psi)\bm{\nu}_r + \Phi_1\bm{\vartheta}
+\end{align}
+
+\subsection{Control objective}
+The control objective is to minimize $\tilde{\eta}(t) \triangleq \eta(t) - r_{\eta}(t)$.
+That is to minimize the difference (error) between the position of the vessel $\eta(t)$ and the reference position $r_{\eta}(t)$.
+A new variable $\bm{z}$ is introduced to describe this difference.
+
+\begin{align}
+	\bm{z}_1       & \triangleq \eta - r_{\eta}                                                                          \\
+	\bm{\dot{z}}_1 & = \bm{\dot{\eta}} - \dot{r}_{\eta} = \bm{R}(\psi)\bm{\nu}_r + \Phi_1\bm{\vartheta} - \dot{r}_{\eta}
+\end{align}
+Since $\bm{\dot{z}}_1 $ does not contain the input $\bm{\tau}$ it is necessary to consider the velocity $\bm{\nu}_r $ as a virtual input $\alpha$.
+This is done in order that backstep though the system equations until we find the real input $\bm{\tau}$. For now $\bm{\nu}_r $ is considered a virtual input,
+that is, a state the can be controlled to act as the input of a subsystem.
+
+\subsection{Step 1}
+
+Choosing the Lyapunov function
+
+\begin{equation}
+	V \triangleq \frac{1}{2}\bm{z}_1^T\bm{z}_1 + \frac{1}{2}\bm{\tilde{\vartheta}}^T\bm{\Gamma}^{-1}\bm{\tilde{\vartheta}}
+\end{equation}
+Which has the derivative
+
+\begin{align}
+	\dot{V} & = \bm{z}_1^T\dot{\bm{z}}_1
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\tilde{\vartheta}}}                                        \\
+	        & = \bm{z}_1^T\left( \bm{R}(\psi)\alpha + \Phi_1\bm{\vartheta} - \dot{r}_{\eta} \right)
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                          \\
+	        & = \bm{z}_1^T\left( \bm{R}(\psi)\alpha + \Phi_1\bm{\hat{\vartheta}} - \dot{r}_{\eta} \right)
+	+ \bm{z}_1^T\Phi_1\bm{\tilde{\vartheta}} + \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \\
+	        & = \bm{z}_1^T\left( \bm{R}(\psi)\alpha + \Phi_1\bm{\hat{\vartheta}} - \dot{r}_{\eta} \right)
+	+ \bm{\tilde{\vartheta}}^T \left(  \Phi_1^T\bm{z}_1 + \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \right)       \\
+\end{align}
+It is seen that choosing the control law for the virtual input $\alpha$
+\begin{equation}
+	\bm{\alpha} = \bm{R}(\psi)^T  -\Phi_1 \bm{\hat{\vartheta}}    +\dot{r_{\eta}} -\bm{K}_1\bm{z}_1
+\end{equation}
+And the adaptation law
+\begin{equation}
+	\bm{\dot{\hat{\vartheta}}} = - \bm{\Gamma} \Phi_1^T \bm{z}_1 = - \bm{\Gamma} \tau(\bm{z}_1)
+\end{equation}
+where $\tau(\bm{z}_1) = \Phi_1^T \bm{z}_1$ is a tuning function, that must not to be confused with the input $\bm{\tau}$.
+
+
+
+\subsection{Derivative of a rotation matrix}
+Consider the rotation matrix $R(\psi)$
+
+\begin{equation}
+	\bm{R}(\psi) = \begin{bmatrix} \cos(\psi) & -\sin(\psi) & 0 \\ \sin(\psi) & \cos(\psi) & 0 \\ 0 & 0 & 1 \end{bmatrix}
+\end{equation}
+And its derivative
+\begin{equation}
+	\bm{\dot{R}}(\psi) = \dfrac{d}{d\psi} \bm{R}(\psi) \dot{\psi} =  \dfrac{d}{d\psi} \bm{R}(\psi) r
+\end{equation}
+\begin{equation}
+	\bm{\dot{R}}(\psi) = \begin{bmatrix} -\sin(\psi)r & -\cos(\psi)r & 0 \\ \cos(\psi)r & -\sin(\psi)r & 0 \\ 0 & 0 & 0 \end{bmatrix}
+\end{equation}
+Which can be written as
+\begin{equation}
+	\bm{\dot{R}}(\psi) = \bm{S}(r)\bm{R}(\psi)
+\end{equation}
+With
+\begin{equation}
+	\bm{S}(r) = \begin{bmatrix} 0 & -r & 0 \\ r & 0 & 0 \\ 0 & 0 & 0 \end{bmatrix}
+\end{equation}
+This is easily verified by doing the matrix multiplication.
+
+\subsection{Step 2}
+Now we must ensure that $\bm{\nu}_r$ takes the value $\alpha$. Thus the control objective
+of the second step is
+
+\begin{align}
+	\bm{z}_2       & \triangleq \bm{\nu}_r - \bm{\alpha}    \\
+	\bm{\dot{z}}_2 & = \bm{\dot{\nu}}_r - \bm{\dot{\alpha}}
+\end{align}
+\begin{equation}
+	\bm{\dot{\alpha}} =  \bm{R}(\psi)^T \bm{S}(r)^T - \Phi_1 \bm{\dot{\hat{\vartheta}}} + \ddot{r}_{\eta} - \bm{K}_1 \bm{\dot{z}}_1
+\end{equation}
+Augmenting the Lyapunov function with a term for $\bm{z}_2$ we have
+\begin{equation}
+	V_2 \triangleq V_1 + \frac{1}{2}\bm{z}_2^T\bm{z}_2
+\end{equation}
+Which has the derivative
+\begin{equation}
+	\dot{V}_1 = \bm{z}_1^T\left( \bm{R}(\psi)(\bm{z_2} + \bm{\alpha})+ \Phi_1\bm{\hat{\vartheta}} - \dot{r}_{\eta} \right)
+	+ \bm{\tilde{\vartheta}}^T \left(  \Phi_1^T\bm{z}_1 + \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \right)
+\end{equation}
+\begin{equation}
+	\dot{V}_1 = \bm{z}_1^T \bm{R}(\psi) \bm{z_2} - \bm{z}_1^T \bm{K}_1 \bm{z}_1 +
+	+ \bm{\tilde{\vartheta}}^T \left(  \Phi_1^T\bm{z}_1 + \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \right)
+\end{equation}
+\begin{align}
+	\dot{V} & = \dot{V}_1 + \bm{z}_2^T\dot{\bm{z}}_2                                                                                           \\
+	        & = \dot{V}_1 + \bm{z}_2^T \left(  \bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\bm{\tau} + \bm{M}^{-1}\Phi_2 (\bm{\nu}_r )\bm{\vartheta}
+	-\bm{R}(\psi)^T \bm{S}(r)^T + \Phi_1 \bm{\dot{\hat{\vartheta}}} - \ddot{r}_{\eta} + \bm{K}_1 \bm{\dot{z}}_1  \right)                       \\
+	        & = \dot{V}_1 + \bm{z}_2^T \left(  \bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\bm{\tau} + \bm{M}^{-1}\Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}}
+	-\bm{R}(\psi)^T \bm{S}(r)^T + \Phi_1 \bm{\dot{\hat{\vartheta}}} - \ddot{r}_{\eta} + \bm{K}_1 \bm{\dot{z}}_1  \right)     +
+	\bm{z}_2^T \bm{M}^{-1}\Phi_2 (\bm{\nu}_r )\bm{\tilde{\vartheta}}
+	\\
+\end{align}
+Choosing the control law
+\begin{equation}
+	\bm{\tau} = -\Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}} + M \left( - \bm{K}_2 \bm{z}_2 -\bm{f}(\bm{\nu}_r) +\bm{R}(\psi)^T \bm{S}(r)^T - \Phi_1 \bm{\dot{\hat{\vartheta}}}
+	+ \ddot{r}_{\eta} - \bm{K}_1 \bm{\dot{z}}_1    -\bm{z}_1^T \bm{R}(\psi) \bm{z_2}   \right)
+\end{equation}
+
+\begin{equation}
+	\dot{V} =  - \bm{z}_1^T \bm{K}_1 \bm{z}_1 -  \bm{z}_2^T \bm{K}_2 \bm{z}_2 + \bm{\tilde{\vartheta}}^T \left(  \Phi_1^T\bm{z}_1 +  \Phi_2 (\bm{\nu}_r )^T\bm{M}^{-1}\bm{z}_2 + \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \right)
+\end{equation}
+
+The adaptation law
+\begin{equation}
+	\bm{\dot{\hat{\vartheta}}} = - \bm{\Gamma} \left( \Phi_1^T\bm{z}_1 +  \Phi_2 (\bm{\nu}_r )^T\bm{M}^{-1}\bm{z}_2 \right)
+\end{equation}
+
+
 \end{document}

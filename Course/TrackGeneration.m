@@ -18,15 +18,16 @@ clc
 
 %%
 
-x = 0:5:200;
+x = 0:1:200;
 y = 20*sin(0.05*x);
 
 P = [x;y];
 %%
 close all
 figure 
-plot(P(1,:),P(2,:))
+plot(P(1,:),P(2,:),'o-')
 axis equal
+
 %%
 save('Course/sinecurve.mat','P');
 
@@ -46,5 +47,27 @@ plot(P(1,:),P(2,:),'o-')
 axis equal
 
 save('Course/square.mat','P');
+
+
+%%
+r = 30;
+
+w  = 0:0.1:2*pi;
+x = r* cos(w)-r;
+y = r* sin(w);
+
+
+
+P = [x;y];
+
+close all
+figure 
+plot(P(1,:),P(2,:),'o-')
+axis equal
+
+save('Course/circle.mat','P');
+
+
+
 
 

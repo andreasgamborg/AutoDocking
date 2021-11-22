@@ -51,7 +51,7 @@ rnu = [0.5-0.5./(1+exp(0.005*(rx-N/2))); zeros(1,N); 0.1./(1+exp(0.005*(rx-N/2))
 %rnu = repmat([1;0;0],1,N);
 %rnu = repmat([0;0.2;0.01],1,N);
 %rnu = [0*rx; sin(1/500 * rx)*0.4; 0*rx];
-%rnu = [repmat([1.2;0.2;-0.1],1,N/2) repmat([1.0;-0.2;0.1],1,N/2)]; 
+rnu = [repmat([0;0;0],1,1000) repmat([1;0;0],1,N/2-1000) repmat([1;0;0.1],1,N/2)]; 
 
 %% Main Loop
 disp('Running Simulation...')

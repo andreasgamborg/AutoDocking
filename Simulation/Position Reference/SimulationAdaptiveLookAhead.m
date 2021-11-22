@@ -10,7 +10,7 @@ t = 0; % Start time
 T = [];
 
 %% Real Vessel
-state(12,1) = pi/4;
+state(12,1) = 0;
 O6 = Otter6(state);
 %O6.UseProppeller = false;
 
@@ -32,7 +32,7 @@ d = diag([Xu 0 Nr])';
 clear MA MRB Xu Nr Model
 
 %% Control gains
-K = diag([0.4, 0.2, 0.2]);
+K = diag([0.4, 0.2, 0.2])*2;
 
 %% Adaptation Init
 Na = 13;
@@ -41,12 +41,13 @@ Gamma = eye(Na)*2;
 
 
 %% Course
-load('Course\square.mat','P')
+%load('Course\square.mat','P')
 load('Course\sinecurve.mat','P')
+%load('Course\circle.mat','P')
 
 closestPoint = 1;
 nP = length(P);
-lookaheaddist = 6;
+lookaheaddist = 4;
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
@@ -80,7 +81,7 @@ for it = 1:N
         alpha = atan2(deltaL(2),deltaL(1));
         alpha = wrapToPi(alpha);
 
-        rnu = [0.5; 0; 0.1*alpha];
+        rnu = [1; 0; 0.4*alpha];
     % Error
         z = nu - rnu;
         if (it == 1 || it == N),  drnu = zeros(3,1); else, drnu = (rnu - lrnu)/Ts; end

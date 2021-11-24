@@ -4,7 +4,7 @@
     clc
 
 %% Init
-    Ts = 1/100;
+    Ts = 1/200;
     N = 20000;
     t = 0; % Start time
     T = [];
@@ -14,7 +14,7 @@
     O6 = Otter6Simplyfied(state);
     O6.UseProppeller = false;
 
-    O6.setCurrent(5,pi/6)
+    %O6.setCurrent(0.2,pi)
     clear state
 %% Model
 
@@ -33,25 +33,29 @@
     clear MA MRB Xu Nr Model
 
 %% Control gains
-    K1 = diag([1, 1, 1])*0.1;
-    K2 = diag([0.2, 0.1, 0.1])*0.2;
+    K1 = diag([1, 1, 1])*0;
+    K2 = diag([1, 1, 1])*0;
 
 
 %% Adaptation Init
     Na = 15;
     thetahat = ones(Na,1)*0;
-    Gamma1 = eye(13)*4;
-    Gamma2 = eye(2)*8;
+    Gamma1 = eye(13)*2;
+    Gamma2 = eye(2)*4;
 
     Gamma = [   Gamma1 zeros(13,2)
                 zeros(2,13) Gamma2  ];
     Phi1 = zeros(3,Na);
     Phi1([1 2],[14 15]) = eye(2);
+    
+    iM = inv(M);
 
 %% Reference
-    reta=[8 -2 0]';
+    reta1=[8 -2 -pi/2]';
+    reta2=[8 -4 -pi/2]';
 
-
+    reta = reta1;
+    
     dreta = zeros(3,1); 
     ddreta = zeros(3,1); 
 
@@ -60,7 +64,7 @@ disp('Running Simulation...')
 for it = 1:N
     % State
         nu = O6.State([1 2 6]);
-        if isnan(nu)            disp('nu is NAN');            break;        end
+        if isnan(nu),            disp('nu is NAN');            break;        end
         eta = O6.State([7 8 12]);
 
         u = nu(1);
@@ -76,7 +80,6 @@ for it = 1:N
                 r    0    0
                 0    0    0   ];
     
-
     % Regressor        
         Phi2(1, 1:2) = [abs(u)*u u^3];
         Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
@@ -84,12 +87,12 @@ for it = 1:N
         
     % Error
         z1 = R'*(eta - reta);
-        z1(3) = wrapTo2Pi(z1(3));
+        z1(3) = -wrapToPi(z1(3));
         alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);
         z2 = nu - alpha;
-        
+    
     % Adaptation
-        dthetahat = -Gamma * (Phi1'*(R*z1 + R'*K1'*z2) + Phi2'*inv(M)*z2);
+        dthetahat = -Gamma * (Phi1'*(R*z1 + R'*K1'*z2) + Phi2'*iM*z2);
         thetahat = thetahat + Ts*dthetahat;
         
 %         mask = logical([zeros(13,1); abs(thetahat(14:15)) > 2]);
@@ -105,17 +108,23 @@ for it = 1:N
             11*r*u];
         
         f = M\(d*nu - C);
-        falpha = -K1*( S*z1+z2-K1*z1 ) - S'*R'*(Phi1*thetahat-dreta) - R'*(Phi1*dthetahat-ddreta);
+        falpha = -K1*( S*z1+z2-K1*z1 ) - R'*(S'*(Phi1*thetahat-dreta) + Phi1*dthetahat - ddreta);
         
-        tau = -Phi2*thetahat + M*(falpha-f)-z1-K2*z2;
+        tau = -Phi2*thetahat + M*(falpha-f-z1-K2*z2);
         tau = -tau;
         
     % Input
+        maxtau = 100;
+        tau = max(-maxtau, min(maxtau,tau));
         Tr([1 2 6],1) = tau;
         Ta = O6.controlAllocation(Tr,nu);
-        O6.Thrust = Tr;
+        if(~O6.UseProppeller)
+            O6.Thrust = Tr;
+        end
         O6.step(Ts);
-
+    % Reference
+        if(norm(z1)<0.01),     reta = reta2; end
+        
     % Save
         History.z(:,it) = [z1;z2];
         History.tau_r(:,it) = tau;
@@ -172,4 +181,4 @@ niceplot(T,History.thetahat(9:13,:), names, title, ["--"], ["time [s]", "[-]"], 
 
 title = 'thetahat';
 names = "$"+["\nu_c,x","\nu_c,y"]+"$";
-niceplot(T,History.thetahat(14:15,:), names, title, ["--"], ["time [s]", "[-]"], 'southeast');
+niceplot(T,History.thetahat(14:15,:), names, title, ["--"], ["time [s]", "[-]"], 'north');

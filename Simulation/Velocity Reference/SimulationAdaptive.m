@@ -4,8 +4,8 @@ clear all
 clc
 
 %% Init
-Ts = 1/50;
-N = 20000;
+Ts = 1/100;
+N = 40000;
 t = 0; % Start time
 T = [];
 
@@ -25,19 +25,19 @@ load(Model,'MA');
 M = MRB + MA;
 M = M([1 2 6],[1 2 6]);
 
-Xu = 77.5544;
-Nr = 49.3007;
+Xu = -77.5544;
+Nr = -49.3007;
 d = diag([Xu 0 Nr])';
 
 clear MA MRB Xu Nr Model
 
 %% Control gains
-K = diag([0.4, 0.2, 0.2]);
+K = diag([0.2, 0.1, 0.4]);
 
 %% Adaptation Init
 Na = 13;
 thetahat = ones(Na,1)*0;
-Gamma = eye(Na)*2;
+Gamma = eye(Na)*1;
 
 %% Reference
 rnu = [1 0 0]';
@@ -48,16 +48,22 @@ rx = 1:N;
 
 rnu = [0.5-0.5./(1+exp(0.005*(rx-N/2))); zeros(1,N); 0.1./(1+exp(0.005*(rx-N/2)))];
 
-%rnu = repmat([1;0;0],1,N);
+rnu = repmat([1;0;0.1],1,N);
+%rnu = [repmat([-0.5;0;0],1,N/2) repmat([1;0;0],1,N/2)];
+
 %rnu = repmat([0;0.2;0.01],1,N);
 %rnu = [0*rx; sin(1/500 * rx)*0.4; 0*rx];
-rnu = [repmat([0;0;0],1,1000) repmat([1;0;0],1,N/2-1000) repmat([1;0;0.1],1,N/2)]; 
+
+rnu = [repmat([0;0;0],1,100) repmat([1;0;0],1,N/4-100) repmat([0.2;0;0.05],1,N/4)  repmat([1;0;0],1,N/4)  repmat([0.2;0;-0.05],1,N/4)]; 
 
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
     % State
         nu = O6.State([1 2 6]);
+        if isnan(nu)
+            disp('nu is NAN')
+        end
         eta = O6.State([7 8 12]);
         u = nu(1);
         v = nu(2);
@@ -66,13 +72,13 @@ for it = 1:N
     % Error
         z = nu - rnu(:,it);
         if (it == 1 || it == N),  drnu = zeros(3,1); else, drnu = (rnu(:,it+1) - rnu(:,it-1))/Ts; end
-
+        drnu = zeros(3,1); 
     % Adaptation
         Phi(1, 1:2) = [abs(u)*u u^3];
         Phi(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
         Phi(3, 9:13) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
     
-        dthetahat = -Gamma * Phi' *inv(M)' * z; 
+        dthetahat = Gamma * Phi' *inv(M)' * z; 
         thetahat = thetahat + Ts*dthetahat;
         
         
@@ -81,11 +87,12 @@ for it = 1:N
             60.5000*r*u
             11*r*u];
         
-        f = M\(-d*nu - C);
+        f = M\(d*nu - C);
         tau = M*(drnu -K*z - f) - Phi*thetahat;
         
    
     % Input
+        
         Tr([1 2 6],1) = tau;
         Ta = O6.controlAllocation(Tr,nu);
         O6.Thrust = Tr;
@@ -117,10 +124,11 @@ close all
 O6.plot(T)
 
 %O6.plotPropeller(T)
+
 title = 'error';
 names = ["$z_u$","$z_v$","$z_r$"];
 niceplot(T,History.z, names, title, ["-"], ["time [s]", "$[\frac{m}{s}]$"], 'southeast');
-
+grid on
 title = 'Thrust requested vs. applied';
 names = ["$\tau_u $","$\tau_v$","$\tau_r$","$\tau_u $","$\tau_v$","$\tau_r$"];
 niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'southwest');

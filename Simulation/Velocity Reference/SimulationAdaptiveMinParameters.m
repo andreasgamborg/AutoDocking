@@ -129,7 +129,7 @@ for it = 1:N
 end
 disp('Simulation done!')
 %%
-save('Simulation/Data/thetahat.mat','thetahat')
+%save('Simulation/Data/thetahat.mat','thetahat')
 
 %% Plotting
 close all

@@ -41,7 +41,6 @@ Phis(1, 1:2) = [abs(u)*u u^3];
 Phis(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
 Phis(6, 9:13) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
 
-load('Simulation\Data\thetahat.mat')
 thetahat = ones(14,1)*0;
 %thetahat = theta;
 %thetahat = thetahat + randn(13,1)*10;
@@ -55,7 +54,7 @@ rx = 1:N;
 
 rnu = [0.5-0.5./(1+exp(0.005*(rx-N/2))); zeros(4,N); 0.1./(1+exp(0.005*(rx-N/2)))];
 
-%rnu = repmat([1;0;0;0;0;0],1,N);
+rnu = repmat([1;0;0;0;0;0],1,N);
 %rnu = repmat([0;0.2;0.01],1,N);
 %rnu = [0*rx; sin(1/500 * rx)*0.4; 0*rx];
 %rnu = [repmat([1.2;0.2;-0.1],1,N/2) repmat([1.0;-0.2;0.1],1,N/2)]; 
@@ -120,7 +119,7 @@ for it = 1:N
 end
 disp('Simulation done!')
 %%
-save('Simulation/Data/thetahat.mat','thetahat')
+%save('Simulation/Data/thetahat.mat','thetahat')
 
 %% Plotting
 close all

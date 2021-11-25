@@ -32,7 +32,7 @@ d = diag([Xu 0 Nr])';
 clear MA MRB Xu Nr Model
 
 %% Control gains
-K = diag([0.2, 0.1, 0.4]);
+K = diag([0.1, 0.1, 0.4]);
 
 %% Adaptation Init
 Na = 13;
@@ -95,7 +95,9 @@ for it = 1:N
         
         Tr([1 2 6],1) = tau;
         Ta = O6.controlAllocation(Tr,nu);
-        O6.Thrust = Tr;
+        if(~O6.UseProppeller)
+            O6.Thrust = Tr;
+        end
         O6.step(Ts);
 
     % Save

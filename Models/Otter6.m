@@ -181,7 +181,9 @@ classdef Otter6 < Vessel
             n = O.Prop.n;
             xi =  O.Prop.xi;
             
-            nu_r = O.getWaterVelo();
+            nu = O.State(1:6);
+            nu_c = O.getWaterVelo();
+            nu_r = nu - nu_c;
             
             Tnn = O.Propeller.Tnn;
             Tnv = O.Propeller.Tnv;
@@ -194,12 +196,12 @@ classdef Otter6 < Vessel
             B = [eye(3) eye(3); Smtrx(l1) Smtrx(l2)];
             T = B * tau;
         end
-        function nu_r = getWaterVelo(O)
+        function nu_c = getWaterVelo(O)
             % Calculates the velocity of the vessel relative to the water
             % taking current into account
             u_c = O.Current.v * cos(O.Current.beta - O.State(12));     % current surge velocity
             v_c = O.Current.v * sin(O.Current.beta - O.State(12));     % current sway velocity
-            nu_r = O.State(1:6) - [u_c v_c 0 0 0 0]';             % relative velocity vector
+            nu_c = [u_c v_c 0 0 0 0]';             % relative velocity vector
         end
         
         
@@ -209,7 +211,8 @@ classdef Otter6 < Vessel
             eta = O.State(7:12);                              % positions
             U = sqrt(nu(1)^2 + nu(2)^2 + nu(3)^2);      % speed
             
-            nu_r = O.getWaterVelo();
+            nu_c = O.getWaterVelo();
+            nu_r = nu - nu_c;
             
             % Inertia dyadic, volume displacement and draft
             nabla = (O.m+O.Payload.m)/O.rho;                         % volume
@@ -312,7 +315,7 @@ classdef Otter6 < Vessel
             
             % Time derivative of the state vector
             nudot = M \ ( tau + tau_damp + tau_crossflow - C * nu_r - G * eta - g_0);
-            etadot = J * nu ;
+            etadot = J * nu + nu_c;
             xdot = [nudot; etadot];
             
         end

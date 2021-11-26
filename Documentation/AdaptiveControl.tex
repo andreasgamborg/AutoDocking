@@ -97,9 +97,9 @@ The system equation can then be split into a known part and a unknown or uncerta
 Where
 \begin{equation}
 	\bm{d} = \begin{bmatrix}
-		X_u & 0 & 0   \\
-		0   & 0 & 0   \\
-		0   & 0 & N_r
+		-X_u & 0 & 0    \\
+		0    & 0 & 0    \\
+		0    & 0 & -N_r
 	\end{bmatrix}
 \end{equation}
 And the uncertain part is described by
@@ -140,14 +140,14 @@ Which has the derivative
 	\dot{V} & = \bm{z}^T\dot{\bm{z}}
 	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\tilde{\vartheta}}}                                                                         \\
 	        & = \bm{z}^T\left(\bm{\dot{\nu}}_r  - \dot{r_{\nu}}\right)
-	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
+	- \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
 	        & = \bm{z}^T\left(\bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left(\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\vartheta}\right)  - \dot{r_{\nu}}\right)
-	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
+	- \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
 	        & = \bm{z}^T\left(\bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left(\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\hat{\vartheta}}\right) - \dot{r_{\nu}}\right)
 	+ \bm{z}^T\bm{M}^{-1} \Phi(\bm{\nu}_r )\bm{\tilde{\vartheta}}
-	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
+	- \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                                           \\
 	        & = \bm{z}^T\left(\bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left(\bm{\tau} + \Phi(\bm{\nu}_r )\bm{\hat{\vartheta}}\right) - \dot{r_{\nu}}\right)
-	+ \bm{\tilde{\vartheta}}^T \left(\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} +\Phi(\bm{\nu}_r )^T \bm{M}^{-T} \bm{z} \right)                     \\
+	+ \bm{\tilde{\vartheta}}^T \left(\Phi(\bm{\nu}_r )^T \bm{M}^{-T} \bm{z} -\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}  \right)                    \\
 \end{align}
 It is seen that choosing the control law
 \begin{equation}
@@ -155,7 +155,7 @@ It is seen that choosing the control law
 \end{equation}
 And the adaptation law
 \begin{equation}
-	\bm{\dot{\hat{\vartheta}}} = - \bm{\Gamma} \Phi(\bm{\nu}_r )^T \bm{M}^{-T} \bm{z}
+	\bm{\dot{\hat{\vartheta}}} = \bm{\Gamma} \Phi(\bm{\nu}_r )^T \bm{M}^{-T} \bm{z}
 \end{equation}
 Will makes the Lyapunov function derivative become
 \begin{equation}
@@ -218,47 +218,6 @@ It is seen that choosing the control law for the virtual input $\alpha$
 	\bm{\alpha} & = \bm{R}(\psi)^T  \left( -\Phi_1 \bm{\hat{\vartheta}}    +\dot{r_{\eta}} -\bm{K}_1\bm{z}_1 \right) \\
 	            & = \bm{R}(\psi)^T \bm{f}_\alpha
 \end{align}
-
-Inserting $\bm{\alpha}$ in (\ref{eq:Lyap1}) we get
-\begin{equation}
-	\dot{V}_1 = -\bm{z}_1^T \bm{K}_1 \bm{z}_1
-	+ \bm{\tilde{\vartheta}}^T \left(  \Phi_1^T\bm{z}_1 + \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \right)
-\end{equation}
-
-And the adaptation law
-\begin{equation}
-	\bm{\dot{\hat{\vartheta}}} = - \bm{\Gamma} \Phi_1^T \bm{z}_1 = - \bm{\Gamma} \tau(\bm{z}_1)
-\end{equation}
-where $\tau(\bm{z}_1) = \Phi_1^T \bm{z}_1$ is a tuning function, that must not to be confused with the input $\bm{\tau}$.
-
-\subsection{Step 1.2}
-\begin{align}
-	\bm{z}_1       & \triangleq \bm{R}(\psi)^T(\eta - r_{\eta})                                                      \\
-	\bm{\dot{z}}_1 & = \bm{R}(\psi)^T\bm{S}(r)^T(\eta - r_{\eta}) + \bm{R}(\psi)^T(\bm{\dot{\eta}} - \dot{r}_{\eta}) \\
-	               & = \bm{S}(r)^T\bm{z}_1 + \bm{R}(\psi)^T(\bm{\dot{\eta}} - \dot{r}_{\eta})                        \\
-	               & = \bm{S}(r)^T\bm{z}_1 + \bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\vartheta}- \dot{r}_{\eta})
-\end{align}
-Choosing the Lyapunov function
-
-\begin{equation}
-	V \triangleq \frac{1}{2}\bm{z}_1^T\bm{z}_1 + \frac{1}{2}\bm{\tilde{\vartheta}}^T\bm{\Gamma}^{-1}\bm{\tilde{\vartheta}}
-\end{equation}
-Which has the derivative
-
-\begin{align}
-	\dot{V} & = \bm{z}_1^T\dot{\bm{z}}_1
-	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\tilde{\vartheta}}}                                                      \\
-	        & = \bm{z}_1^T\left( \bm{S}(r)^T\bm{z}_1 + \bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\vartheta}- \dot{r}_{\eta}) \right)
-	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                        \\
-	        & = \bm{z}_1^T\left(\bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\hat{\vartheta}}- \dot{r}_{\eta}) \right)
-	+ \bm{z}_1^T\bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}} + \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \\
-	        & = \bm{z}_1^T\left(\bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\hat{\vartheta}}- \dot{r}_{\eta}) \right)
-	+ \bm{\tilde{\vartheta}} ^T \left(\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} +  \Phi_1^T\bm{R}(\psi)\bm{z}_1	\right)
-\end{align}
-It is seen that choosing the control law for the virtual input $\alpha$
-\begin{equation}
-	\bm{\alpha} = -\bm{K}_1\bm{z}_1 - \bm{R}(\psi)^T  \left( \Phi_1 \bm{\hat{\vartheta}} - \dot{r_{\eta}} \right)
-\end{equation}
 
 Inserting $\bm{\alpha}$ in (\ref{eq:Lyap1}) we get
 \begin{equation}
@@ -358,5 +317,169 @@ The adaptation law
 	\bm{\dot{\hat{\vartheta}}} = - \bm{\Gamma} \left( \Phi_1^T\bm{z}_1 +  \Phi_2 (\bm{\nu}_r )^T\bm{M}^{-1}\bm{z}_2 \right)
 \end{equation}
 
+\section{Adaptive Position Control 2}
 
+\subsection{The System}
+As in the previous section the system is
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\vartheta} \right) \\
+	\bm{\dot{\eta}}  & = \bm{R}(\psi)\bm{\nu}_r + \bm{\nu}_c
+\end{align}
+where the known part $\bm{f}(\bm{\nu}_r)$, the uncertain part $\Phi(\bm{\nu}_r )\bm{\vartheta}$ and the input $\bm{\tau}$
+of the system is separated. Considering the water currents as a unknown quantity
+\begin{align}
+	\bm{\dot{\nu}}_r & = \bm{f}(\bm{\nu}_r) + \bm{M}^{-1} \left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\vartheta} \right) \\
+	\bm{\dot{\eta}}  & = \bm{R}(\psi)\bm{\nu}_r + \Phi_1\bm{\vartheta}
+\end{align}
+
+\subsection{Control objective}
+The control objective is to minimize $\tilde{\eta}(t) \triangleq \eta(t) - r_{\eta}(t)$.
+That is to minimize the difference (error) between the position of the vessel $\eta(t)$ and the reference position $r_{\eta}(t)$.
+A new variable $\bm{z}$ is introduced to describe this difference.
+
+\begin{align}
+	\bm{z}_1 & \triangleq \bm{R}(\psi)^T(\eta - r_{\eta}) \\
+	\label{eq:z2}
+	\bm{z}_2 & \triangleq \bm{\nu}_r - \bm{\alpha}
+\end{align}
+
+\subsection{Step 1}
+Choosing the Lyapunov function
+
+\begin{equation}
+	V_1 \triangleq \frac{1}{2}\bm{z}_1^T\bm{z}_1 + \frac{1}{2}\bm{\tilde{\vartheta}}^T\bm{\Gamma}^{-1}\bm{\tilde{\vartheta}}
+\end{equation}
+Which has the derivative
+\begin{equation}
+	\dot{V}_1 = \bm{z}_1^T\dot{\bm{z}}_1
+\end{equation}
+We first have to find the derivative of $\bm{z}_1$
+\begin{align}
+	\bm{\dot{z}}_1 & = \bm{R}(\psi)^T\bm{S}(r)^T(\eta - r_{\eta}) + \bm{R}(\psi)^T(\bm{\dot{\eta}} - \dot{r}_{\eta}) \\
+	               & = \bm{S}(r)^T\bm{z}_1 + \bm{R}(\psi)^T(\bm{\dot{\eta}} - \dot{r}_{\eta})                        \\
+	               & = \bm{S}(r)^T\bm{z}_1 + \bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\vartheta}- \dot{r}_{\eta})
+\end{align}
+where the property $\bm{R}(\psi)^T\bm{S}(r)^T = \bm{S}(r)^T\bm{R}(\psi)^T$ is used.
+Now we can find $\dot{V}_1$ and isolate the terms that depend on $\bm{\tilde{\vartheta}}$
+\begin{align}
+	\dot{V}_1 & = \bm{z}_1^T\dot{\bm{z}}_1
+	+ \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\tilde{\vartheta}}}                                                        \\
+	          & = \bm{z}_1^T\left( \bm{S}(r)^T\bm{z}_1 + \bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\vartheta}- \dot{r}_{\eta}) \right)
+	- \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}                                                          \\
+	          & = \bm{z}_1^T\left(\bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\hat{\vartheta}}- \dot{r}_{\eta}) \right)
+	+ \bm{z}_1^T\bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}} - \bm{\tilde{\vartheta}} ^T\bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}   \\
+	          & = \bm{z}_1^T\left(\bm{\nu}_r + \bm{R}(\psi)^T(\Phi_1\bm{\hat{\vartheta}}- \dot{r}_{\eta}) \right)
+	+ \bm{\tilde{\vartheta}} ^T \left( \Phi_1^T\bm{R}(\psi)\bm{z}_1 - \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}	\right)
+\end{align}
+It is seen that choosing the control law for the virtual input $\bm{\alpha}$
+\begin{equation}
+	\bm{\alpha} = -\bm{K}_1\bm{z}_1 - \bm{R}(\psi)^T  \left( \Phi_1 \bm{\hat{\vartheta}} - \dot{r_{\eta}} \right)
+\end{equation}
+will cancel all known terms and
+
+Using \ref{eq:z2}, $\bm{\nu}_r$ is substituted by $\bm{z}_2 + \bm{\alpha}$, this changes $\bm{\dot{z}}_1$ to
+
+\begin{align}
+	\bm{\dot{z}}_1 & = \bm{S}(r)^T\bm{z}_1 + \bm{z}_2 + \bm{\alpha} + \bm{R}(\psi)^T(\Phi_1\bm{\vartheta}- \dot{r}_{\eta}) \\
+	               & = \bm{S}(r)^T\bm{z}_1 - \bm{K}_1\bm{z}_1 + \bm{z}_2 + \bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}}
+\end{align}
+and $\dot{V}_1$ to
+\begin{align}
+	\dot{V}_1 & = \bm{z}_1^T\left( \bm{z}_2 + \bm{\alpha} + \bm{R}(\psi)^T(\Phi_1\bm{\hat{\vartheta}}- \dot{r}_{\eta}) \right)
+	+ \bm{\tilde{\vartheta}} ^T \left( \Phi_1^T\bm{R}(\psi)\bm{z}_1 - \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}	\right)        \\
+	          & = \bm{z}_1^T \bm{z}_2 -\bm{z}_1^T\bm{K}_1\bm{z}_1
+	+ \bm{\tilde{\vartheta}} ^T \left( \Phi_1^T\bm{R}(\psi)\bm{z}_1 - \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}	\right)        \\
+\end{align}
+
+\subsection{Step 2}
+
+
+\begin{equation}
+	V_2 \triangleq V_1 + \frac{1}{2}\bm{z}_2^T\bm{z}_2
+\end{equation}
+Which has the derivative
+
+\begin{equation}
+	\dot{V}_2 = \dot{V}_1 + \bm{z}_2^T\dot{\bm{z}}_2
+\end{equation}
+In order to evaluate this. We first have to find the derivative of $\bm{z}_2$
+
+\begin{align}
+	\bm{\dot{z}}_2 & = \bm{\dot{\nu}}_r - \bm{\dot{\alpha}}
+\end{align}
+
+\begin{align}
+	\bm{\dot{\alpha}} & = -\bm{K}_1\bm{\dot{z}}_1 - \bm{R}(\psi)^T \bm{S}(r)^T (\Phi \bm{\hat{\vartheta}}  -  \dot{r}_\eta)
+	- \bm{R}(\psi)^T(\Phi \bm{\dot{\hat{\vartheta}}}  -  \ddot{r}_\eta)                                                                            \\
+	                  & =  -\bm{K}_1 \left( \bm{S}(r)^T\bm{z}_1 - \bm{K}_1\bm{z}_1 + \bm{z}_2 + \bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}} \right)
+	- \bm{R}(\psi)^T \left( \bm{S}(r)^T  (\Phi \bm{\hat{\vartheta}}  -  \dot{r}_\eta) + \Phi \bm{\dot{\hat{\vartheta}}}  -  \ddot{r}_\eta  \right) \\
+	                  & = \bm{f}_\alpha - \bm{K}_1\bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}}
+\end{align}
+With
+\begin{equation}
+	\bm{f}_\alpha = -\bm{K}_1 \left( \bm{S}(r)^T\bm{z}_1 - \bm{K}_1\bm{z}_1 + \bm{z}_2 \right)
+	- \bm{R}(\psi)^T \left( \bm{S}(r)^T (\Phi \bm{\hat{\vartheta}}  -  \dot{r}_\eta) + \Phi \bm{\dot{\hat{\vartheta}}}  -  \ddot{r}_\eta  \right)
+\end{equation}
+Then we have
+
+\begin{equation}
+	\bm{\dot{z}}_2  = \bm{f}(\bm{\nu}_r) + \bm{M}^{-1}\left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\vartheta} \right)
+	- \bm{f}_\alpha + \bm{K}_1\bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}}
+\end{equation}
+Again we try to isolate the terms that depend on $ \bm{\tilde{\vartheta}}$
+
+\begin{equation}
+	\bm{\dot{z}}_2 = \bm{f}(\bm{\nu}_r) - \bm{f}_\alpha
+	+ \bm{M}^{-1}\left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}} \right)
+	+ \bm{K}_1\bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}}
+	+ \bm{M}^{-1} \Phi_2 (\bm{\nu}_r )\bm{\tilde{\vartheta}}
+\end{equation}
+We are now ready to find $\dot{V}_2$
+
+
+\begin{align}
+	\dot{V}_2 & = \dot{V}_1 + \bm{z}_2^T\dot{\bm{z}}_2                                                                  \\
+	          & = \bm{z}_1^T \bm{z}_2 -\bm{z}_1^T\bm{K}_1\bm{z}_1
+	+ \bm{\tilde{\vartheta}} ^T \left( \Phi_1^T\bm{R}(\psi)\bm{z}_1 - \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}}	\right) \\
+	          & + \bm{z}_2^T \left(	  \bm{f}(\bm{\nu}_r) - \bm{f}_\alpha
+	+ \bm{M}^{-1}\left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}} \right)
+	+ \bm{K}_1\bm{R}(\psi)^T\Phi_1\bm{\tilde{\vartheta}}
+	+ \bm{M}^{-1} \Phi_2 (\bm{\nu}_r )\bm{\tilde{\vartheta}}	\right)
+\end{align}
+
+Factoring out $\bm{\tilde{\vartheta}}^T$ from all terms depending on the error, we get
+
+\begin{align}
+	\dot{V}_2 & = \bm{z}_1^T \bm{z}_2 -\bm{z}_1^T\bm{K}_1\bm{z}_1
+	+ \bm{z}_2^T \left(	  \bm{f}(\bm{\nu}_r) - \bm{f}_\alpha
+	+ \bm{M}^{-1}\left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}} \right)\right)                                             \\
+	          & +\bm{\tilde{\vartheta}}^T \left(  \Phi_2 (\bm{\nu}_r )^T \bm{M}^{-1} \bm{z}_2 + \Phi_1^T\bm{R}(\psi)\bm{K}_1^T \bm{z}_2
+	+ \Phi_1^T\bm{R}(\psi)\bm{z}_1 - \bm{\Gamma}^{-1}\bm{\dot{\hat{\vartheta}}} \right)
+\end{align}
+
+Choosing the adaptation law to be
+
+\begin{align}
+	\bm{\dot{\hat{\vartheta}}} & = \bm{\Gamma} \left(      \Phi_2 (\bm{\nu}_r )^T \bm{M}^{-1} \bm{z}_2 + \Phi_1^T\bm{R}(\psi)\bm{K}_1^T \bm{z}_2
+	+ \Phi_1^T\bm{R}(\psi)\bm{z}_1           \right)                                                                                                                     \\
+	                           & = \bm{\Gamma} \left(  \Phi_1^T\bm{R}(\psi) (\bm{z}_1 + \bm{K}_1^T \bm{z}_2)   +    \Phi_2 (\bm{\nu}_r )^T \bm{M}^{-1} \bm{z}_2  \right)
+\end{align}
+
+The Lyapunov function derivative becomes
+\begin{equation}
+	\dot{V}_2 = \bm{z}_1^T \bm{z}_2 -\bm{z}_1^T\bm{K}_1\bm{z}_1	+ \bm{z}_2^T \left(	  \bm{f}(\bm{\nu}_r) - \bm{f}_\alpha
+	+ \bm{M}^{-1}\left( \bm{\tau} + \Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}} \right)\right)
+\end{equation}
+And finally, choosing the control law as
+
+\begin{equation}
+	\bm{\tau} = \bm{M} \left(
+	-\bm{z}_1 - \bm{K}_2 \bm{z}_2 + \bm{f}_\alpha - \bm{f}(\bm{\nu}_r)
+	\right)
+	- \Phi_2 (\bm{\nu}_r )\bm{\hat{\vartheta}}
+\end{equation}
+Changing the Lyapunov function derivative to
+\begin{equation}
+	\dot{V}_2 = -\bm{z}_1^T\bm{K}_1\bm{z}_1	-\bm{z}_2^T\bm{K}_2\bm{z}_2
+\end{equation}
 \end{document}

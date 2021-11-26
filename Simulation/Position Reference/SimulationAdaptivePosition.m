@@ -4,14 +4,14 @@
     clc
 
 %% Init
-    Ts = 1/200;
-    N = 20000;
+    Ts = 1/1000;
+    N = 100000;
     t = 0; % Start time
     T = [];
 
 %% Real Vessel
     state(12,1) = 0;
-    O6 = Otter6Simplyfied(state);
+    O6 = Otter6(state);
     O6.UseProppeller = false;
 
     %O6.setCurrent(0.2,pi)
@@ -33,28 +33,32 @@
     clear MA MRB Xu Nr Model
 
 %% Control gains
-    K1 = diag([1, 1, 1])*0;
-    K2 = diag([1, 1, 1])*0;
-
+    K1 = diag([2, 2, 1])*0.01;
+    K2 = diag([2, 1, 4])*2;
 
 %% Adaptation Init
     Na = 15;
     thetahat = ones(Na,1)*0;
-    Gamma1 = eye(13)*2;
-    Gamma2 = eye(2)*4;
+    Gamma1 = eye(13)*8;
+    %Gamma1 = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
+
+    Gamma2 = eye(2)*2;
 
     Gamma = [   Gamma1 zeros(13,2)
                 zeros(2,13) Gamma2  ];
+            
     Phi1 = zeros(3,Na);
     Phi1([1 2],[14 15]) = eye(2);
     
     iM = inv(M);
 
 %% Reference
-    reta1=[8 -2 -pi/2]';
-    reta2=[8 -4 -pi/2]';
-
+    reta1=[8 -2 0]';
+    reta2=[20 -6 -pi/2]';
+    
     reta = reta1;
+    
+    %reta = [8 -2 0]';
     
     dreta = zeros(3,1); 
     ddreta = zeros(3,1); 
@@ -87,12 +91,12 @@ for it = 1:N
         
     % Error
         z1 = R'*(eta - reta);
-        z1(3) = -wrapToPi(z1(3));
+        %z1(3) = wrapToPi(z1(3));
         alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);
         z2 = nu - alpha;
     
     % Adaptation
-        dthetahat = -Gamma * (Phi1'*(R*z1 + R'*K1'*z2) + Phi2'*iM*z2);
+        dthetahat = Gamma * (Phi1'*R*(z1 + K1'*z2) + Phi2'*iM*z2);
         thetahat = thetahat + Ts*dthetahat;
         
 %         mask = logical([zeros(13,1); abs(thetahat(14:15)) > 2]);
@@ -108,10 +112,9 @@ for it = 1:N
             11*r*u];
         
         f = M\(d*nu - C);
-        falpha = -K1*( S*z1+z2-K1*z1 ) - R'*(S'*(Phi1*thetahat-dreta) + Phi1*dthetahat - ddreta);
+        falpha = -K1*( S'*z1 + z2 - K1*z1 ) - R'*(S'*(Phi1*thetahat-dreta) + Phi1*dthetahat - ddreta);
         
-        tau = -Phi2*thetahat + M*(falpha-f-z1-K2*z2);
-        tau = -tau;
+        tau = M*(falpha-f-z1-K2*z2) - Phi2*thetahat;
         
     % Input
         maxtau = 100;

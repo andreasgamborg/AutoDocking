@@ -37,7 +37,8 @@ K = diag([0.1, 0.1, 0.4]);
 %% Adaptation Init
 Na = 13;
 thetahat = ones(Na,1)*0;
-Gamma = eye(Na)*1;
+Gamma = eye(Na)*2;
+Gamma = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
 
 %% Reference
 rnu = [1 0 0]';
@@ -79,6 +80,7 @@ for it = 1:N
         Phi(3, 9:13) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
     
         dthetahat = Gamma * Phi' *inv(M)' * z; 
+        %dthetahat = -Gamma * Phi' *inv(M)' * z; 
         thetahat = thetahat + Ts*dthetahat;
         
         

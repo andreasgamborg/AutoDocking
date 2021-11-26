@@ -4,8 +4,8 @@
     clc
 
 %% Init
-    Ts = 1/1000;
-    N = 100000;
+    Ts = 1/100;
+    N = 10000;
     t = 0; % Start time
     T = [];
 
@@ -34,7 +34,7 @@
 
 %% Control gains
     K1 = diag([2, 2, 1])*0.01;
-    K2 = diag([2, 1, 4])*2;
+    K2 = diag([2, 1, 4])*1;
 
 %% Adaptation Init
     Na = 15;
@@ -42,7 +42,7 @@
     Gamma1 = eye(13)*8;
     %Gamma1 = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
 
-    Gamma2 = eye(2)*2;
+    Gamma2 = eye(2)*0.1;
 
     Gamma = [   Gamma1 zeros(13,2)
                 zeros(2,13) Gamma2  ];
@@ -53,7 +53,7 @@
     iM = inv(M);
 
 %% Reference
-    reta1=[8 -2 0]';
+    reta1=[8 -2 -pi/4]';
     reta2=[20 -6 -pi/2]';
     
     reta = reta1;

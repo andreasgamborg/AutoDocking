@@ -33,22 +33,22 @@
     clear MA MRB Xu Nr Model
 
 %% Control gains
-    K1 = diag([1, 0.8, 0.8])*1/3000;
-    K2 = diag([1, 1, 0.8])*1;
+    K1 = diag([1, 0.8, 0.8])*1/30;
+    K2 = diag([1, 0.8, 0.8])*1/30;
 
 %% Adaptation Init
-    Na = 15;
+    Na = 5;
     thetahat = ones(Na,1)*0;
-    Gamma1 = eye(13)*1;
+    Gamma1 = eye(3)*1;
     %Gamma1 = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
 
-    Gamma2 = eye(2)*0.02;
+    Gamma2 = eye(2)*1e-2;
 
-    Gamma = [   Gamma1 zeros(13,2)
-                zeros(2,13) Gamma2  ];
+    Gamma = [   Gamma1 zeros(3,2)
+                zeros(2,3) Gamma2  ];
             
     Phi1 = zeros(3,Na);
-    Phi1([1 2],[14 15]) = eye(2);
+    Phi1([1 2],[4 5]) = eye(2);
     
     iM = inv(M);
 
@@ -56,12 +56,9 @@
     reta1=[8 -2 -pi/4]';
     reta2=[20 -6 -pi/2]';
     
-    
-    
-    reta1 = [1 1 0]';
-    reta2 = [2 1 0]';
-    
     reta = reta1;
+    
+    reta = [1 1 0]';
     
     dreta = zeros(3,1); 
     ddreta = zeros(3,1); 
@@ -88,10 +85,13 @@ for it = 1:N
                 0    0    0   ];
     
     % Regressor        
-        Phi2(1, 1:2) = [abs(u)*u u^3];
-        Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
-        Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
-        
+%         Phi2(1, 1:2) = [abs(u)*u u^3];
+%         Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
+%         Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
+
+        Phi2 = [abs(u)*u 0         0 0 0
+                       0 v         0 0 0
+                       0 0  abs(r)*r 0 0 ];
     % Error
         z1 = R'*(eta - reta);
         %z1(3) = wrapToPi(z1(3));
@@ -105,8 +105,8 @@ for it = 1:N
 %         mask = logical([zeros(13,1); abs(thetahat(14:15)) > 2]);
 %         thetahat(mask) = sign(thetahat(14:15))*2;
         currentBound = 1;
-        thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
-        thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
+        thetahat(4) = max(-currentBound, min(currentBound,thetahat(4)));
+        thetahat(5) = max(-currentBound, min(currentBound,thetahat(5)));
 
         
     % Control
@@ -129,7 +129,7 @@ for it = 1:N
         end
         O6.step(Ts);
     % Reference
-        if(norm(z1)<0.01), reta = reta2; end
+        %if(norm(z1)<0.01),     reta = reta2; end
         
     % Save
         History.z(:,it) = [z1;z2];

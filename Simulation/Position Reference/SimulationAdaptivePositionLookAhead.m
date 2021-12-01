@@ -14,7 +14,7 @@
     O6 = Otter6(state);
     O6.UseProppeller = false;
 
-    O6.setCurrent(0.2,pi)
+    %O6.setCurrent(0.2,pi)
     clear state
 %% Model
 
@@ -61,8 +61,8 @@ load('Course\CosFin.mat','P')
 nP = length(P);
 lookaheaddist = 1.2;
 pt = 1;
-dreta = 0;
-ddreta = 0;
+lreta = 0;
+ldreta = 0;
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
@@ -104,6 +104,11 @@ for it = 1:N
         end
         reta = [Tpos;Thead];
     % Error
+        dreta = reta - lreta;
+        lreta = reta;
+        ddreta = dreta - ldreta;
+        ldreta = dreta;
+        
         z1 = R'*(eta - reta);
         z1(3) = wrapToPi(z1(3));
         alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);

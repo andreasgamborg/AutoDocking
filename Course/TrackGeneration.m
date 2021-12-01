@@ -16,7 +16,7 @@ clc
 % P = ginput(10);
 % P = P';
 
-%%
+%% Sine curve
 
 x = 0:1:200;
 y = 20*sin(0.05*x);
@@ -52,7 +52,7 @@ save('Course/square.mat','P');
 %%
 r = 30;
 
-w  = 0:0.1:2*pi;
+w  = 0:0.05:2*pi;
 x = r* cos(w)-r;
 y = r* sin(w);
 
@@ -66,6 +66,24 @@ plot(P(1,:),P(2,:),'o-')
 axis equal
 
 save('Course/circle.mat','P');
+
+%% Cos + Finish
+
+x = 0:200;
+y = 20*cos(2*pi*1/100*x)-20;
+
+Pc = [x;y];
+
+Pf = Pc(:,end)+[1:20;zeros(1,20)];
+
+P = [Pc Pf];
+close all
+figure 
+plot(P(1,:),P(2,:),'o-')
+axis equal
+
+%%
+save('Course/CosFin.mat','P');
 
 
 

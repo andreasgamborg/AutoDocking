@@ -5,7 +5,7 @@
 
 %% Init
     Ts = 1/100;
-    N = 10000;
+    N = 30000;
     t = 0; % Start time
     T = [];
 
@@ -14,7 +14,7 @@
     O6 = Otter6(state);
     O6.UseProppeller = false;
 
-    O6.setCurrent(0.2,0)
+    O6.setCurrent(0.2,pi)
     clear state
 %% Model
 
@@ -51,22 +51,18 @@
     Phi1([1 2],[14 15]) = eye(2);
     
     iM = inv(M);
+    
+%% Course
+%load('Course\square.mat','P')
+load('Course\sinecurve.mat','P')
+%load('Course\circle.mat','P')
+load('Course\CosFin.mat','P')
 
-%% Reference
-    reta1=[8 -2 -pi/4]';
-    reta2=[20 -6 -pi/2]';
-    
-    reta1 = [1 1 0]';
-    reta2 = [2 1 0]';
-    
-    reta1 = [1 1 0]';
-    reta2 = [1.2 1 0]';
-    
-    reta = reta1;
-    
-    dreta = zeros(3,1); 
-    ddreta = zeros(3,1); 
-
+nP = length(P);
+lookaheaddist = 1.2;
+pt = 1;
+dreta = 0;
+ddreta = 0;
 %% Main Loop
 disp('Running Simulation...')
 for it = 1:N
@@ -93,9 +89,23 @@ for it = 1:N
         Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
         Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
         
+    % Guidance
+        if pt < nP
+            pos = eta(1:2);
+            dist = norm(P(:,pt+1)-pos);
+            if dist < lookaheaddist
+                pt = pt + 1;
+            end
+            Tpos = P(:,pt);
+        end
+        if pt < nP-1
+            diff = P(:,pt+1)-P(:,pt);
+            Thead = atan2(diff(2),diff(1));
+        end
+        reta = [Tpos;Thead];
     % Error
         z1 = R'*(eta - reta);
-        %z1(3) = wrapToPi(z1(3));
+        z1(3) = wrapToPi(z1(3));
         alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);
         z2 = nu - alpha;
     
@@ -104,9 +114,9 @@ for it = 1:N
         thetahat = thetahat + Ts*dthetahat;
         
 
-%         currentBound = 1;
-%         thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
-%         thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
+        currentBound = 1;
+        thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
+        thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
 
         
     % Control
@@ -128,9 +138,7 @@ for it = 1:N
             O6.Thrust = Tr;
         end
         O6.step(Ts);
-    % Reference
-        %if(norm(z1)<0.01), reta = reta2; end
-        if(it == N/2), reta = reta2; end
+
     % Save
         History.z(:,it) = [z1;z2];
         History.tau_r(:,it) = tau;
@@ -154,7 +162,7 @@ clear u v r
 %% Plotting
 close all
 
-O6.plot(T)
+O6.plot(T,P)
 
 %O6.plotPropeller(T)
 

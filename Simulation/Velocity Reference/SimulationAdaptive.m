@@ -12,7 +12,7 @@ T = [];
 %% Real Vessel
 state(12,1) = 0;
 O6 = Otter6(state);
-O6.UseProppeller = false;
+O6.UseProppeller = true;
 
 clear state
 %% Model
@@ -32,13 +32,13 @@ d = diag([Xu 0 Nr])';
 clear MA MRB Xu Nr Model
 
 %% Control gains
-K = diag([0.1, 0.1, 0.4]);
+K = diag([0.1, 0.1, 0.4])*10;
 
 %% Adaptation Init
 Na = 13;
 thetahat = ones(Na,1)*0;
-Gamma = eye(Na)*2;
-Gamma = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
+Gamma = eye(Na)*8;
+%Gamma = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
 
 %% Reference
 rnu = [1 0 0]';
@@ -49,7 +49,7 @@ rx = 1:N;
 
 rnu = [0.5-0.5./(1+exp(0.005*(rx-N/2))); zeros(1,N); 0.1./(1+exp(0.005*(rx-N/2)))];
 
-rnu = repmat([1;0;0.1],1,N);
+rnu = repmat([1;0;0],1,N);
 %rnu = [repmat([-0.5;0;0],1,N/2) repmat([1;0;0],1,N/2)];
 
 %rnu = repmat([0;0.2;0.01],1,N);

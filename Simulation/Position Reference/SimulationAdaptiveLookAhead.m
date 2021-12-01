@@ -43,7 +43,7 @@ Gamma = eye(Na)*2;
 %% Course
 %load('Course\square.mat','P')
 load('Course\sinecurve.mat','P')
-%load('Course\circle.mat','P')
+load('Course\circle.mat','P')
 
 closestPoint = 1;
 nP = length(P);

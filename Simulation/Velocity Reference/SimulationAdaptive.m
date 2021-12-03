@@ -5,7 +5,7 @@ clc
 
 %% Init
 Ts = 1/100;
-N = 40000;
+N = 60000;
 t = 0; % Start time
 T = [];
 
@@ -33,12 +33,12 @@ clear MA MRB Xu Nr Model
 
 %% Control gains
 K = diag([0.1, 0.1, 0.4])*10;
+K = diag([1.3, 0.1, 1.3]);
 
 %% Adaptation Init
 Na = 13;
 thetahat = ones(Na,1)*0;
-Gamma = eye(Na)*8;
-%Gamma = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
+Gamma = eye(Na)*0.01;
 
 %% Reference
 rnu = [1 0 0]';

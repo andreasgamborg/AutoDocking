@@ -59,7 +59,7 @@ for it = 1:1:Nstyles
     plot(time,series(cut_start:cut_end,:),style(it),'Linewidth',3);
 end
 % hold off
-
+grid on
 if ~isempty(names)
     lgd = legend(names,'Interpreter', 'LaTeX');
     lgd.NumColumns = ceil(Nseries/4);

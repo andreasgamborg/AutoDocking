@@ -11,10 +11,10 @@
 
 %% Real Vessel
     state(12,1) = 0;
-    O6 = Otter6(state);
+    O6 = Otter6r(state);
     O6.UseProppeller = false;
 
-    O6.setCurrent(0.2,0)
+    O6.setCurrent(0.2,pi)
     clear state
 %% Model
 
@@ -33,16 +33,17 @@
     clear MA MRB Xu Nr Model
 
 %% Control gains
-    K1 = diag([0.2, 0.2, 0.1])*0.001;
-    K2 = diag([1, 0.5, 0.5])*1;
-
+    K1 = diag([2, 2, 1])*0.8;
+    K2 = diag([1.3, 1, 1.1])*1.05;
+    ftau = zeros(3,1);
+    
 %% Adaptation Init
     Na = 15;
     thetahat = zeros(Na,1);
-    Gamma1 = eye(13)*1;
+    Gamma1 = eye(13)*0.1;
     %Gamma1 = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
 
-    Gamma2 = eye(2)*0.2;
+    Gamma2 = eye(2)*0.06;
 
     Gamma = [   Gamma1 zeros(13,2)
                 zeros(2,13) Gamma2  ];
@@ -122,7 +123,8 @@ for it = 1:N
     % Input
         maxtau = 100;
         tau = max(-maxtau, min(maxtau,tau));
-        Tr([1 2 6],1) = tau;
+        ftau = ftau + 0.1*(tau - ftau);
+        Tr([1 2 6],1) = ftau;
         Ta = O6.controlAllocation(Tr,nu);
         if(~O6.UseProppeller)
             O6.Thrust = Tr;

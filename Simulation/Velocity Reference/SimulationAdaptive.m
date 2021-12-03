@@ -11,7 +11,7 @@ T = [];
 
 %% Real Vessel
 state(12,1) = 0;
-O6 = Otter6(state);
+O6 = Otter6r(state);
 O6.UseProppeller = true;
 
 clear state
@@ -55,7 +55,7 @@ rnu = repmat([1;0;0],1,N);
 %rnu = repmat([0;0.2;0.01],1,N);
 %rnu = [0*rx; sin(1/500 * rx)*0.4; 0*rx];
 
-rnu = [repmat([0;0;0],1,100) repmat([1;0;0],1,N/4-100) repmat([0.2;0;0.05],1,N/4)  repmat([1;0;0],1,N/4)  repmat([0.2;0;-0.05],1,N/4)]; 
+rnu = [repmat([0;0;0],1,100) repmat([1;0;0],1,N/4-100) repmat([0.5;0;0.05],1,N/4)  repmat([1;0;0],1,N/4)  repmat([0.5;0;-0.05],1,N/4)]; 
 
 %% Main Loop
 disp('Running Simulation...')

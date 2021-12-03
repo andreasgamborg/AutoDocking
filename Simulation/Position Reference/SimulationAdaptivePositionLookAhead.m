@@ -11,7 +11,7 @@
 
 %% Real Vessel
     state(12,1) = 0;
-    O6 = Otter6(state);
+    O6 = Otter6r(state);
     O6.UseProppeller = false;
 
     %O6.setCurrent(0.2,pi)
@@ -103,12 +103,14 @@ for it = 1:N
             Thead = atan2(diff(2),diff(1));
         end
         reta = [Tpos;Thead];
-    % Error
+    % Reference derivative
         dreta = reta - lreta;
         lreta = reta;
         ddreta = dreta - ldreta;
         ldreta = dreta;
-        
+        dreta = 0;
+        ddreta = 0;
+    % Error
         z1 = R'*(eta - reta);
         z1(3) = wrapToPi(z1(3));
         alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);

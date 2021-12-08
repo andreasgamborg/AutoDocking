@@ -1,27 +1,31 @@
 %% Clean
     close all
     clear all
-    clc
+    %clc
 
 %% Init
     Ts = 1/100;
-    N = 5000;
+    N = 10000;
     t = 0; % Start time
     T = [];
 
 %% Real Vessel
-    O6 = Otter6();
+    O6 = Otter();
     O6.UseProppeller = false;
+    %O6.setCurrent(0.1,pi)
+    %O6.setPayload(100,[1;0;0])
         tau = [0 0 0]';
 
 %% Main Loop
-disp('Running Simulation...')
+disp('Running Simulation...'), tic;
 for it = 1:N
  
     % Input
-        if(it == 1/Ts)
-            tau = [0 0 1]';
+        if(it == 1000)
+            tau = [0 1 0]';
+            %O6.setPayload(100,[1;0;0])
         end
+
         Tr([1 2 6],1) = tau;
 %         Ta = O6.controlAllocation(Tr,nu);
         if(~O6.UseProppeller)
@@ -35,7 +39,7 @@ for it = 1:N
         t = t+Ts;
     
 end
-disp('Simulation done!')
+disp('Simulation done!'), toc;
 
 %% Plotting
 close all

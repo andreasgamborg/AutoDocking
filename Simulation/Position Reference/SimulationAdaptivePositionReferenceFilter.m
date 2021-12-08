@@ -5,16 +5,16 @@
 
 %% Init
     Ts = 1/100;
-    N = 30000;
+    N = 20000;
     t = 0; % Start time
     T = [];
 
 %% Real Vessel
     state(12,1) = 0;
-    O6 = Otter(state);
+    O6 = Otter6r(state);
     O6.UseProppeller = false;
 
-    O6.setCurrent(0.2,pi)
+    %O6.setCurrent(0.2,pi)
     clear state
 %% Model
 
@@ -33,16 +33,17 @@
     clear MA MRB Xu Nr Model
 
 %% Control gains
-    K1 = diag([0.2, 0.2, 0.1])*0.001;
-    K2 = diag([1, 0.5, 0.5])*1;
-
+    K1 = diag([2, 2, 1])*0.8;
+    K2 = diag([1.3, 1, 1.1])*1.05;
+    ftau = zeros(3,1);
+    
 %% Adaptation Init
     Na = 15;
     thetahat = zeros(Na,1);
-    Gamma1 = eye(13)*1;
+    Gamma1 = eye(13)*0.1;
     %Gamma1 = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
 
-    Gamma2 = eye(2)*0.2;
+    Gamma2 = eye(2)*0.06;
 
     Gamma = [   Gamma1 zeros(13,2)
                 zeros(2,13) Gamma2  ];
@@ -51,18 +52,27 @@
     Phi1([1 2],[14 15]) = eye(2);
     
     iM = inv(M);
-    
-%% Course
-%load('Course\square.mat','P')
-load('Course\sinecurve.mat','P')
-%load('Course\circle.mat','P')
-load('Course\CosFin.mat','P')
 
-nP = length(P);
-lookaheaddist = 1.2;
-pt = 1;
-lreta = 0;
-ldreta = 0;
+%% Reference
+    reta1=[8 -2 -pi/4]';
+    reta2=[20 -6 -pi/2]';
+    
+    reta1 = [1 1 0]';
+    reta2 = [2 1 0]';
+    
+    reta1 = [1 1 0]';
+    reta2 = [1.2 1 0]';
+    
+    reta = [10 1 -pi/4]';
+    
+    freta = zeros(3,1);
+    dfreta = zeros(3,1);
+    Kreta = diag([1 1 1])*0.05;
+    dreta = zeros(3,1); 
+    ddreta = zeros(3,1); 
+    lreta = 0;
+    ldreta = 0;
+
 %% Main Loop
 disp('Running Simulation...'), tic;
 for it = 1:N
@@ -89,30 +99,9 @@ for it = 1:N
         Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
         Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
         
-    % Guidance
-        if pt < nP
-            pos = eta(1:2);
-            dist = norm(P(:,pt+1)-pos);
-            if dist < lookaheaddist
-                pt = pt + 1;
-            end
-            Tpos = P(:,pt);
-        end
-        if pt < nP-1
-            diff = P(:,pt+1)-P(:,pt);
-            Thead = atan2(diff(2),diff(1));
-        end
-        reta = [Tpos;Thead];
-    % Reference derivative
-        dreta = reta - lreta;
-        lreta = reta;
-        ddreta = dreta - ldreta;
-        ldreta = dreta;
-        dreta = 0;
-        ddreta = 0;
     % Error
-        z1 = R'*(eta - reta);
-        z1(3) = wrapToPi(z1(3));
+        z1 = R'*(eta - freta);
+        %z1(3) = wrapToPi(z1(3));
         alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);
         z2 = nu - alpha;
     
@@ -121,9 +110,9 @@ for it = 1:N
         thetahat = thetahat + Ts*dthetahat;
         
 
-        currentBound = 1;
-        thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
-        thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
+%         currentBound = 1;
+%         thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
+%         thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
 
         
     % Control
@@ -139,13 +128,27 @@ for it = 1:N
     % Input
         maxtau = 100;
         tau = max(-maxtau, min(maxtau,tau));
-        Tr([1 2 6],1) = tau;
+        ftau = ftau + 0.1*(tau - ftau);
+        Tr([1 2 6],1) = ftau;
         Ta = O6.controlAllocation(Tr,nu);
         if(~O6.UseProppeller)
             O6.Thrust = Tr;
         end
         O6.step(Ts);
+    % Reference
+        %if(norm(z1)<0.01), reta = reta2; end
+%         if(it == N/2), reta = reta2; end
+        ddfreta = Kreta*(reta-freta);
+        dfreta = dfreta + Ts*ddfreta;
+                freta = freta + Ts*dfreta;
 
+        % Reference derivative
+        dreta = reta - lreta;
+        lreta = reta;
+        ddreta = dreta - ldreta;
+        ldreta = dreta;
+        dreta = 0;
+        ddreta = 0;
     % Save
         History.z(:,it) = [z1;z2];
         History.tau_r(:,it) = tau;
@@ -156,7 +159,10 @@ for it = 1:N
         History.phi(:,it) = O6.State(12);
         History.pos(:,it) = O6.State(7:8);
         History.thetahat(:,it) = thetahat;
-    
+        
+        History.reta(:,it) = reta;
+        History.freta(:,it) = freta;
+
     % Time update
         T = [T t];
         t = t+Ts;
@@ -169,7 +175,7 @@ clear u v r
 %% Plotting
 close all
 
-O6.plot(T,P)
+O6.plot(T)
 
 %O6.plotPropeller(T)
 
@@ -178,7 +184,12 @@ close all
 
 title = 'Thrust requested vs. applied';
 names = ["$\tau_u $","$\tau_v$","$\tau_r$","$\tau_u $","$\tau_v$","$\tau_r$"];
-niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'west');
+niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]", "[N]"], 'northwest');
+
+title = 'Reference';
+names = "$"+["r_u","r_v","r_\psi","r_u","r_v","r_\psi"]+"$";
+niceplot(T, [History.reta; History.freta], names, title, ["--","-"], ["time [s]", "[-]"], 'southwest');
+
 title = 'Velocity error';
 names = ["$z_u$","$z_v$","$z_r$"];
 niceplot(T,History.z(4:6,:), names, title, ["-"], ["time [s]", "$[\frac{m}{s}]$"], 'center');

@@ -11,7 +11,7 @@ T = [];
 
 %% Real Vessel
 state(12,1) = 0;
-O6 = Otter6(state);
+O6 = Otter(state);
 %O6.UseProppeller = false;
 
 clear state

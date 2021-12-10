@@ -14,7 +14,9 @@
     O6 = Otter(state);
     O6.UseProppeller = false;
 
-    O6.setCurrent(0.2,pi)
+    O6.setCurrent(0.2,pi);
+        O6.setWind(4,0)
+    %O6.setHarbour([10;0],0, 4 , 3)
     clear state
 %% Model
 
@@ -58,11 +60,25 @@ load('Course\sinecurve.mat','P')
 %load('Course\circle.mat','P')
 load('Course\CosFin.mat','P')
 
+% xpath = 0:0.2:12; 
+% ypath = xpath*0;
+% P = [xpath; ypath];
+
 nP = length(P);
-lookaheaddist = 1.2;
+lookaheaddist = 2;
 pt = 1;
-lreta = 0;
-ldreta = 0;
+
+
+% Reference filter
+    % Same filter is used for x, y and psi (position and heading)
+    Ref.zeta = 1;
+    Ref.wn = 0.2;
+    Ref.K1 = diag([1 1 2^2])*Ref.wn^2;
+    Ref.K2 = diag([1 1 2])*2*Ref.zeta*Ref.wn;
+
+    Ref.r= [ 0 0 0 ]';
+    Ref.dr= [ 0 0 0 ]';
+    Ref.ddr= [ 0 0 0 ]';
 %% Main Loop
 disp('Running Simulation...'), tic;
 for it = 1:N
@@ -103,27 +119,21 @@ for it = 1:N
             Thead = atan2(diff(2),diff(1));
         end
         reta = [Tpos;Thead];
-    % Reference derivative
-        dreta = reta - lreta;
-        lreta = reta;
-        ddreta = dreta - ldreta;
-        ldreta = dreta;
-        dreta = 0;
-        ddreta = 0;
+
     % Error
-        z1 = R'*(eta - reta);
+        z1 = R'*(eta - Ref.r );
         z1(3) = wrapToPi(z1(3));
-        alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);
+        alpha = -K1*z1 - R'*(Phi1*thetahat-Ref.dr);
         z2 = nu - alpha;
     
     % Adaptation
         dthetahat = Gamma * (Phi1'*R*(z1 + K1'*z2) + Phi2'*iM*z2);
         thetahat = thetahat + Ts*dthetahat;
         
-
-        currentBound = 1;
-        thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
-        thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
+% 
+%         currentBound = 1;
+%         thetahat(14) = max(-currentBound, min(currentBound,thetahat(14)));
+%         thetahat(15) = max(-currentBound, min(currentBound,thetahat(15)));
 
         
     % Control
@@ -132,7 +142,7 @@ for it = 1:N
             11*r*u];
         
         f = M\(d*nu - C);
-        falpha = -K1*( S'*z1 + z2 - K1*z1 ) - R'*(S'*(Phi1*thetahat-dreta) + Phi1*dthetahat - ddreta);
+        falpha = -K1*( S'*z1 + z2 - K1*z1 ) - R'*(S'*(Phi1*thetahat-Ref.dr) + Phi1*dthetahat - Ref.ddr);
         
         tau = M*(falpha-f-z1-K2*z2) - Phi2*thetahat;
         
@@ -145,6 +155,11 @@ for it = 1:N
             O6.Thrust = Tr;
         end
         O6.step(Ts);
+        
+    % Reference dynamics
+        Ref.ddr = -Ref.K2*Ref.dr + Ref.K1*(reta-Ref.r);
+        Ref.dr = Ref.dr + Ts*Ref.ddr;
+        Ref.r = Ref.r + Ts*Ref.dr;
 
     % Save
         History.z(:,it) = [z1;z2];
@@ -170,7 +185,9 @@ clear u v r
 close all
 
 O6.plot(T,P)
-
+title = 'Wind force';
+            names = ["$F_wu$","$F_wv$"];
+            niceplot(T,O6.History.WindForce(1:2,:), names, title, ["-"], ["time [s]", "$[N]$"], 'southeast');
 %O6.plotPropeller(T)
 
 disp('Press any key to show error'), pause

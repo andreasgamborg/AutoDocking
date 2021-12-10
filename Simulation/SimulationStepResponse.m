@@ -15,6 +15,7 @@
     %O6.setCurrent(0.1,pi)
     %O6.setPayload(100,[1;0;0])
         tau = [0 0 0]';
+        O6.setHarbour([10;10],0, 4 , 3)
 
 %% Main Loop
 disp('Running Simulation...'), tic;

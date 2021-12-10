@@ -11,10 +11,11 @@
 
 %% Real Vessel
     state(12,1) = 0;
-    O6 = Otter6r(state);
-    O6.UseProppeller = false;
+    O6 = Otter(state);
+    O6.UseProppeller = true;
+    O6.setHarbour([6;5], 0, 4, 3)
 
-    %O6.setCurrent(0.2,pi)
+    O6.setCurrent(0.1,-pi/2)
     clear state
 %% Model
 
@@ -57,22 +58,25 @@
     reta1=[8 -2 -pi/4]';
     reta2=[20 -6 -pi/2]';
     
-    reta1 = [1 1 0]';
+    reta1 = [1 0 0]';
     reta2 = [2 1 0]';
     
-    reta1 = [1 1 0]';
-    reta2 = [1.2 1 0]';
+    reta1 = [4 5 pi/6]';
+    reta2 = [8 5 0]';
     
-    reta = [10 1 -pi/4]';
+    reta = reta1; 
     
-    freta = zeros(3,1);
-    dfreta = zeros(3,1);
-    Kreta = diag([1 1 1])*0.05;
-    dreta = zeros(3,1); 
-    ddreta = zeros(3,1); 
-    lreta = 0;
-    ldreta = 0;
 
+    % Reference filter
+    % Same filter is used for x, y and psi (position and heading)
+    Ref.zeta = 1;
+    Ref.wn = 0.1;
+    Ref.K1 = diag([1 1 1])*Ref.wn^2;
+    Ref.K2 = diag([1 1 1])*2*Ref.zeta*Ref.wn;
+
+    Ref.r= [ 0 0 0 ]';
+    Ref.dr= [ 0 0 0 ]';
+    Ref.ddr= [ 0 0 0 ]';
 %% Main Loop
 disp('Running Simulation...'), tic;
 for it = 1:N
@@ -100,9 +104,9 @@ for it = 1:N
         Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
         
     % Error
-        z1 = R'*(eta - freta);
-        %z1(3) = wrapToPi(z1(3));
-        alpha = -K1*z1 - R'*(Phi1*thetahat-dreta);
+        z1 = R'*(eta - Ref.r);
+        z1(3) = wrapToPi(z1(3));
+        alpha = -K1*z1 - R'*(Phi1*thetahat-Ref.dr);
         z2 = nu - alpha;
     
     % Adaptation
@@ -121,34 +125,25 @@ for it = 1:N
             11*r*u];
         
         f = M\(d*nu - C);
-        falpha = -K1*( S'*z1 + z2 - K1*z1 ) - R'*(S'*(Phi1*thetahat-dreta) + Phi1*dthetahat - ddreta);
+        falpha = -K1*( S'*z1 + z2 - K1*z1 ) - R'*(S'*(Phi1*thetahat-Ref.dr) + Phi1*dthetahat - Ref.ddr);
         
         tau = M*(falpha-f-z1-K2*z2) - Phi2*thetahat;
         
     % Input
-        maxtau = 100;
-        tau = max(-maxtau, min(maxtau,tau));
-        ftau = ftau + 0.1*(tau - ftau);
-        Tr([1 2 6],1) = ftau;
+        Tr([1 2 6],1) = tau;
         Ta = O6.controlAllocation(Tr,nu);
         if(~O6.UseProppeller)
             O6.Thrust = Tr;
         end
         O6.step(Ts);
     % Reference
-        %if(norm(z1)<0.01), reta = reta2; end
-%         if(it == N/2), reta = reta2; end
-        ddfreta = Kreta*(reta-freta);
-        dfreta = dfreta + Ts*ddfreta;
-                freta = freta + Ts*dfreta;
-
-        % Reference derivative
-        dreta = reta - lreta;
-        lreta = reta;
-        ddreta = dreta - ldreta;
-        ldreta = dreta;
-        dreta = 0;
-        ddreta = 0;
+        if(it == N/2), reta = reta2; end
+        % Reference dynamics
+        
+            Ref.ddr = -Ref.K2*Ref.dr + Ref.K1*(reta-Ref.r);
+            Ref.dr = Ref.dr + Ts*Ref.ddr;
+            Ref.r = Ref.r + Ts*Ref.dr;
+        
     % Save
         History.z(:,it) = [z1;z2];
         History.tau_r(:,it) = tau;
@@ -161,7 +156,7 @@ for it = 1:N
         History.thetahat(:,it) = thetahat;
         
         History.reta(:,it) = reta;
-        History.freta(:,it) = freta;
+        History.freta(:,it) = Ref.r;
 
     % Time update
         T = [T t];

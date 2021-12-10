@@ -30,13 +30,15 @@ classdef Otter < handle
         UseProppeller % boolean for switching between tau or [n xi] as actuator
         Propeller       % Object for thruster dynamics
     end
-    %% Distrubance
+    %% Distrubance & Habour
     properties
+        useDistrubance  % flag
         Payload
         Current
         Wind
+        Harbour         % Object for Habour dynamics see function setHarbour() for structure
     end
-    %% History
+    %% History & Plot
     properties
         History
         t = 0;
@@ -82,6 +84,7 @@ classdef Otter < handle
             O.setState(State);
             O.setPayload(0,[0 0 0]');
             O.setCurrent(0,0);
+            O.setWind(0,0);
             initPropeller(O)
             waitUntilSteady(O)
             resetHistory(O)
@@ -132,7 +135,24 @@ classdef Otter < handle
                 error('input has wrong dimensions, should be 12x1 vector')
             end
         end
-     
+        function setHarbour(O,pos,theta,depth,width)
+            O.Harbour.pos = pos;
+            O.Harbour.mouth = theta;
+            O.Harbour.depth = depth;
+            O.Harbour.width = width;
+            
+            O.Harbour.BernoulliForce = zeros(6,1);
+            
+            figx = [0 0 depth depth 0 0];
+            figy = [10 width/2 width/2 -width/2 -width/2 -10];
+            
+            O.Harbour.fig = pos+[figx;figy];
+        end
+        function setWind(O, mean, dir)
+            O.Wind.mean = mean;
+            O.Wind.dir = dir;
+            O.Wind.force = zeros(6,1);
+        end
         %% Initialization
         function initPropeller(O)
             % Claculate propeller constants
@@ -156,6 +176,7 @@ classdef Otter < handle
             O.Propeller = P;
         end
         function waitUntilSteady(O)
+            O.useDistrubance = false;
             O.step(1/100);
             diff = 1;
             lastState = O.State;
@@ -164,6 +185,7 @@ classdef Otter < handle
                 diff = norm(O.State-lastState);
                 lastState = O.State;
             end
+            O.useDistrubance = true;
         end
         function resetHistory(O)
             O.t = 0;
@@ -228,7 +250,8 @@ classdef Otter < handle
             B = [eye(3) eye(3); Smtrx(l1) Smtrx(l2)];
             iW = eye(6);
             
-            %             tau = pinv(B)*T;
+            % Pseudo Inverse
+%             tau = pinv(B)*Tr;
             % SVD
             [U,S,V] = svd(B*iW*B');
             S(S<eps) = 0;
@@ -273,11 +296,12 @@ classdef Otter < handle
             Tnn = O.Propeller.Tnn;
             Tnv = O.Propeller.Tnv;
             
-            %             n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
-            %             n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
+            % If Va = 0
+            %n1 = sign(a1)*sqrt(abs(a1)/O.Propeller.Tnn);
+            %n2 = sign(a2)*sqrt(abs(a2)/O.Propeller.Tnn);
             
-            n1 = sign(a1)*(sqrt(Tnv^2*Va(1)^2 + 4*Tnn*abs(a1))-Tnv*Va(1)) / (2*Tnn);
-            n2 = sign(a2)*(sqrt(Tnv^2*Va(2)^2 + 4*Tnn*abs(a2))-Tnv*Va(2)) / (2*Tnn);
+            n1 = sign(a1)*(sqrt(Tnv^2*Va(1)^2 + 4*Tnn*abs(a1))-sign(a1)*Tnv*Va(1)) / (2*Tnn);
+            n2 = sign(a2)*(sqrt(Tnv^2*Va(2)^2 + 4*Tnn*abs(a2))-sign(a2)*Tnv*Va(2)) / (2*Tnn);
             n = [n1 n2]';
             
             O.Propeller.n_r = n;
@@ -286,7 +310,10 @@ classdef Otter < handle
             a = Tnn*abs(n).*n + Tnv*abs(n).*Va;
             tau = [ [cos(xi(1)) sin(xi(1)) 0 0 0 0]' [0 0 0 cos(xi(2)) sin(xi(2)) 0]' ]*a;
             Ta = B*tau;
-            if (Ta ~= Tr), warning('could not allocate control correctly'); end
+            
+            if (abs(Ta(1) - Tr(1)) > 0.5*abs(Tr(1)))
+                warning('could not allocate control correctly'); 
+            end
             
         end
         function T = updateThrust(O)
@@ -308,6 +335,7 @@ classdef Otter < handle
             
             Va = cos(xi)*nu_r(1) + sin(xi)*nu_r(2);
             thrust = Tnn*abs(n).*n + Tnv*abs(n).*Va;
+
             O.Propeller.Thrust = thrust;
             
             tau = [ [cos(xi(1)) sin(xi(1)) 0 0 0 0]' [0 0 0 cos(xi(2)) sin(xi(2)) 0]' ]*thrust;
@@ -316,9 +344,16 @@ classdef Otter < handle
         end
         
         %% Distrubances
-        function tau_wind = windForce(O,V)
+        function tau_wind = windForce(O,V,dir)
 
             rho_a = 1.225;        % Density of air (kg/m^3)
+            
+            nu = O.getVelocity();
+            psi = O.getHeading();
+                        
+            V = Rot(dir,2)*[-V;0] + rand(2,1);
+            
+            v_w = Rot(psi,2)*V - nu;
 
             % Area
             Ax = O.Height*O.B;
@@ -331,19 +366,53 @@ classdef Otter < handle
 %             Ck = C(disdir,3);      
 %             Cn = C(disdir,4); 
 
-            Cx = 0.01;
-            Cy = 0.05;
+            Cx = 0.1;
+            Cy = 0.3;
 
             % Force
-            Fx =  0.5*rho_a*Cx*Ax*V^2;
-            Fy =  0.5*rho_a*Cy*Ay*V^2;
+            Fx =  0.5*rho_a*Cx*Ax*v_w(1)^2*sign(v_w(1));
+            Fy =  0.5*rho_a*Cy*Ay*v_w(2)^2*sign(v_w(2));
             tau_wind = [Fx;Fy;0;0;0;0];
             
         end
+        function Fb = bernoulliForce(O)
+            % Calculate the bernoulli forces in the harbour
+                        Fb = zeros(6,1);
+            sp = O.getPosition;
+            h = O.Harbour;
+
+            lowx = h.pos(1);
+            highx = h.pos(1) + h.depth;
+            lowy = h.pos(2) - h.width/2;
+            highy = h.pos(2) + h.width/2;
+
+            inHabour = inrange(lowx,sp(1),highx) && inrange(lowy,sp(2),highy);
+            if inHabour
+                Fp = O.Propeller.Thrust;
+                Kb = 0.1;
+
+                dp = sp(1) - lowy -O.B/2;
+                dsb = highy - sp(1) -O.B/2;
+
+                Fbp     = -Kb * Fp(1) * max(1-dp/O.B,0);
+                Fbsb    = Kb * Fp(2) * max(1-dsb/O.B,0);
+
+                Fb(2) = Fbp + Fbsb;
+            end
+        end
         function tau_ext = externalForces(O)
             % Calculate the external forces acting on the vessel
-            tw = O.windForce(0);
-            tau_ext =  tw;
+            Fw = O.windForce(O.Wind.mean,O.Wind.dir);
+            O.Wind.force = Fw;
+            
+            Fb = zeros(6,1);
+            if ~isempty(O.Harbour)
+                Fb = bernoulliForce(O);
+                O.Harbour.BernoulliForce = Fb;
+
+            end
+            
+            tau_ext =  Fw + Fb;            
         end
         
         %% Model Update
@@ -399,7 +468,7 @@ classdef Otter < handle
             
             % Linear damping terms (hydrodynamic derivatives)
             Xu = 24.4 * O.g / O.Umax;           % specified using the maximum speed
-            Yv = 172;
+            Yv = 100;
             Zw = 2 * 0.3 *w3 * O.M(3,3);      % specified using relative damping factors
             Kp = 2 * 0.2 *w4 * O.M(4,4);
             Mq = 2 * 0.4 *w5 * O.M(5,5);
@@ -445,7 +514,11 @@ classdef Otter < handle
             
             % Strip theory: cross-flow drag integrals for Yh and Nh
             tau_crossflow = crossFlowDrag(O.L,O.B_pont,O.draft,nu_r);
-            tau_ext = O.externalForces();
+            
+            tau_ext = zeros(6,1);
+            if O.useDistrubance
+                tau_ext = O.externalForces();
+            end
             
         
             % Calculate the time derivative of the state vector
@@ -475,6 +548,8 @@ classdef Otter < handle
             O.History.Propeller.ref(:,O.t) = [O.Propeller.xi_r; O.Propeller.n_r];
             O.History.Propeller.thrust(:,O.t) = O.Propeller.Thrust;
             O.History.Thrust(:,O.t) = O.Thrust;
+            if ~isempty( O.Harbour), O.History.Bernoulli(:,O.t) = O.Harbour.BernoulliForce; end
+            O.History.WindForce(:,O.t) = O.Wind.force;
         end
         function stepPropeller(O,Ts)
             % Progress time for proppeller, this will make the proppeller
@@ -483,16 +558,17 @@ classdef Otter < handle
             k_neg = 0.01289/2;                      % Negative Bollard, one propeller
             n_max =  sqrt((0.5*24.4 * O.g)/k_pos);    % maximum propeller rev. (rad/s)
             n_min = -sqrt((0.5*13.6 * O.g)/k_neg);    % minimum propeller rev. (rad/s)
-            dn =    0.5*(O.Propeller.n_r - O.Propeller.n);
+            
+            dn =    2*(O.Propeller.n_r - O.Propeller.n);
             O.Propeller.n = O.Propeller.n + Ts*dn;
             % Propeller forces and moments
             O.Propeller.n(O.Propeller.n>n_max) = n_max;             % saturation, physical limits
             O.Propeller.n(O.Propeller.n<n_min) = n_min;             % saturation, physical limits
             
-            dxi =   3*(O.Propeller.xi_r - O.Propeller.xi);
-            dximax = deg2rad(10);
-            dxi(dxi>dximax) = dximax;
-            dxi(dxi<-dximax) = -dximax;
+            dxi =   5*(O.Propeller.xi_r - O.Propeller.xi);
+%             dximax = deg2rad(20);
+%             dxi(dxi>dximax) = dximax;
+%             dxi(dxi<-dximax) = -dximax;
             O.Propeller.xi = O.Propeller.xi + Ts*dxi;
         end
         %% Visualization
@@ -502,7 +578,9 @@ classdef Otter < handle
             axis equal
             grid
             set(gca, 'YDir','reverse')
-            
+            if ~isempty(O.Harbour)
+                plot(O.Harbour.fig(1,:), O.Harbour.fig(2,:), 'k-', 'LineWidth', 4);
+            end
             color = 'g-';
             for i = [1:1000:O.t, O.t]
                 vessel = vesselplot(O.History.Pos(6,i),O.History.Propeller.state(1:2,i));
@@ -574,6 +652,17 @@ classdef Otter < handle
                 niceplot(T, O.History.Thrust([1 2 6],:), names, title, ["-"], ["time [s]", "[N]"], 'southwest');
             end
         end
+        
+         function plotDistrubance(O, T)
+            if ~isempty( O.Harbour) 
+            title = 'Bernoulli force';
+            names = ["$F_bv$"];
+            niceplot(T,O.History.Bernoulli(2,:), names, title, ["-"], ["time [s]", "$[N]$"], 'northeast'); 
+            end
+            title = 'Wind force';
+            names = ["$F_wu$","$F_wv$"];
+            niceplot(T,O.History.WindForce(1:2,:), names, title, ["-"], ["time [s]", "$[N]$"], 'southeast');
+         end
     end
 end
 

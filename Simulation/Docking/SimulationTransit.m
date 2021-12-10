@@ -5,7 +5,7 @@
 
 %% Init
     Ts = 1/100;
-    N = 40000;
+    N = 60000;
     t = 0; % Start time
     T = [];
 
@@ -13,11 +13,9 @@
     state(12,1) = 0;
     O6 = Otter(state);
     O6.UseProppeller = true;
-    habourPos = [10;10];
-    O6.setHarbour(habourPos, 0, 3, 2)
 
-    O6.setCurrent(0.1,-pi)
-    O6.setWind(4,0)
+    O6.setCurrent(1,-pi);
+    O6.setWind(13, pi/2);
     clear state
 %% Model
 
@@ -44,10 +42,7 @@
     Na = 15;
     thetahat = zeros(Na,1);
     Gamma1 = eye(13)*0.1;
-    %Gamma1 = diag([5 5 100 50000 100 100 100 100 50000 100 100 100 100]);
-
     Gamma2 = eye(2)*0.06;
-
     Gamma = [   Gamma1 zeros(13,2)
                 zeros(2,13) Gamma2  ];
             
@@ -60,18 +55,14 @@
     load('Course\CosFin.mat','P')
     lookaheaddist = 2;
     pt = 1;
-    
-    [P1,P2] = dockingCouse(O6.getPosition,habourPos-[6;0.1],habourPos+[1.5;0.1]);
-
-    P = P1;
-        nP = length(P);
+    nP = length(P);
 
     % Reference filter
     % Same filter is used for x, y and psi (position and heading)
     Ref.zeta = 1;
-    Ref.wn = 0.2;
-    Ref.K1 = diag([1 1 2^2])*Ref.wn^2;
-    Ref.K2 = diag([1 1 2])*2*Ref.zeta*Ref.wn;
+    Ref.wn = 0.5;
+    Ref.K1 = diag([1 1 1])*Ref.wn^2;
+    Ref.K2 = diag([1 1 1])*2*Ref.zeta*Ref.wn;
 
     Ref.r= [ 0 0 0 ]';
     Ref.dr= [ 0 0 0 ]';
@@ -118,16 +109,11 @@ for it = 1:N
                 excess = lookaheaddist-targetdist;
             end
             dir = [next-target; 0];       dir = dir/norm(dir);
-            reta = P(:,pt)+excess*dir;
+            head = atan2(dir(2),dir(1));
+
+            reta = [P(:,pt);head]+excess*dir;
         end
-    
             
-        if(it == floor(N*2/3)) 
-            P = P2;
-            pt = 1;
-            nP = length(P);
-        end
-        
     % Error
         z1 = R'*(eta - Ref.r);
         z1(3) = wrapToPi(z1(3));
@@ -190,7 +176,7 @@ clear u v r
 %% Plotting
 close all
 
-O6.plot(T,[P1 P2])
+O6.plot(T,P)
 
 %O6.plotPropeller(T)
 

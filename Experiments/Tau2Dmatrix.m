@@ -6,8 +6,9 @@ syms u v w p q r real
 nu = [u v w p q r]';
 
 %% Cross flow damping
-load('Experiments/LinearCFdamp.mat')
-
+%load('Experiments/LinearCFdamp.mat')
+load('Experiments\CrossFlowDragFit\tau_cf22.mat')
+tau_cf =tau_cf22;
 %% (Linear) damping
 Xu = -77.5544 ;
 Yv = 0;
@@ -30,7 +31,7 @@ tau_damp = [Xh Yh Zh Kh Mh Nh]';
 tau = -(tau_damp + tau_cf)
 
 D =  jacobian(tau, nu);
-D = simplify(D,100);
+%D = simplify(D,100);
 latexeq("\bm{D}",D)
 
 

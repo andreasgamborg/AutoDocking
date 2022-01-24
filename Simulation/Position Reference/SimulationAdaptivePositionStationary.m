@@ -5,39 +5,16 @@
 
 %% Init
     Ts = 1/100;
-    N = 60000;
+    N = 20000;
     t = 0; % Start time
     T = [];
 
 %% Real Vessel
-    state(12,1) = pi/4;
-    O6 = Otter(state);
+    O6 = Otter();
     O6.UseProppeller = true;
-    habourPos = [15;10];
-    O6.setHarbour(habourPos, 0, 3, 2)
-    
-    weathercondition = "no" % mild, fair, harsh or extreme
-
-    switch weathercondition
-        case "no"
-            O6.setWind(0, 0);
-            O6.setCurrent(0,pi/4);
-        case "mild"
-            O6.setWind(0, 0);
-            O6.setCurrent(0.1/toKnots(1),pi/4);
-        case "fair"
-            O6.setWind(4, 0);
-            O6.setCurrent(0.5/toKnots(1),pi/4);
-        case "harsh"
-            O6.setWind(8, 0);
-            O6.setCurrent(1/toKnots(1),pi/4);
-        case "extreme"
-            O6.setWind(12, 0);
-            O6.setCurrent(2/toKnots(1),pi/4);
-        otherwise
-            warning('No such wheather condition defined')
-    end
-
+   
+    O6.setCurrent(0,pi/2)
+    O6.setWind(0,0)
     clear state
 %% Model
 
@@ -50,8 +27,9 @@
     M = M([1 2 6],[1 2 6]);
 
     Xu = -77.5544;
-    Nr = -45.2650;
-    d = diag([Xu 0 Nr])';
+    Yv = 0;
+    Nr = -49.3007;
+    d = diag([Xu Yv Nr])';
 
     clear MA MRB Xu Nr Model
 
@@ -61,29 +39,20 @@
     ftau = zeros(3,1);
     
 %% Adaptation Init
-    Na = 15;
+    Na = 14;
     thetahat = zeros(Na,1);
-    Gamma1 = eye(13)*0.1;
-    Gamma2 = eye(2)*0.16;
+    Gamma1 = eye(12)*0.1;
+    Gamma2 = eye(2)*0.06;
 
-    Gamma = [   Gamma1 zeros(13,2)
-                zeros(2,13) Gamma2  ];
+    Gamma = [   Gamma1 zeros(12,2)
+                zeros(2,12) Gamma2  ];
             
     Phi1 = zeros(3,Na);
-    Phi1([1 2],[14 15]) = eye(2);
+    Phi1([1 2],[13 14]) = eye(2);
     
     iM = inv(M);
 
-%% Course & Reference
-    lookaheaddist = 2;
-    pt = 1;
-    
-    %[P1,P2] = dockingCouse(O6.getPosition,habourPos-[6;0.1],habourPos+[1.5;0.1]);
-    [P1,P2] = dockingCouse([5;5],habourPos-[5;0],habourPos+[1.5;0]);
-
-    P = P1;
-    nP = length(P);
-
+%% Reference
     % Reference filter
     % Same filter is used for x, y and psi (position and heading)
     Ref.zeta = 1;
@@ -91,14 +60,24 @@
     Ref.K1 = diag([1 1 1])*Ref.wn^2;
     Ref.K2 = diag([1 1 1])*2*Ref.zeta*Ref.wn;
 
-    Ref.reta =[ 0 0 pi/4 ]';
-    Ref.r= [ 0 0 pi/4 ]';
+    Ref.reta =[ 0 0 0 ]';
+    Ref.r= [ 0 0 0 ]';
     Ref.dr= [ 0 0 0 ]';
     Ref.ddr= [ 0 0 0 ]';
     
+    reta = [ 0 0 0 ]';
+    
+%% Wind
+    Wind = load('Wind\wind4.mat');
+    Vc = 0.2;
+    dirc = pi/4;
 %% Main Loop
 disp('Running Simulation...'), tic;
 for it = 1:N
+    % Wind & current
+        itw = mod(it,7000)+1;
+        %O6.setWind(Wind.speed(itw), Wind.direction(itw));
+        O6.setCurrent(            Vc,           dirc);
     % State
         nu_c = O6.getWaterVelo();
         nu_r = O6.State([1 2 6]) - nu_c([1 2 6]) ;
@@ -119,31 +98,8 @@ for it = 1:N
     
     % Regressor        
         Phi2(1, 1:2) = [abs(u)*u u^3];
-        Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
-        Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
-        
-     % Guidance
-
-        if pt < nP
-            pos = eta(1:2);
-            target = P(1:2,pt);            targetdist = norm(target-pos);
-            next = P(1:2,pt+1);            nextdist = norm(next-pos);
-            if nextdist < lookaheaddist
-                pt = pt + 1;
-                %excess = lookaheaddist-nextdist;
-                excess = 0;
-            else
-                excess = lookaheaddist-targetdist;
-            end
-            dir = [next-target;0];          dir = dir/norm(dir);
-            reta = P(:,pt)+excess*dir;
-        end
-    
-        if(it == floor(N*2/3)) 
-            P = P2;
-            pt = 1;
-            nP = length(P);
-        end
+        Phi2(2, 3:7) = [r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
+        Phi2(3, 8:14) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
         
     % Error
         z1 = R'*(eta - Ref.r);
@@ -209,11 +165,10 @@ clear u v r
 %% Plotting
 close all
 
-O6.plot(T,[P1 P2])
-return
+O6.plot(T)
+
 %O6.plotPropeller(T)
 
-%%
 disp('Press any key to show error'), pause
 close all
 
@@ -224,9 +179,6 @@ niceplot(T, [History.tau_a; History.tau_r], names, title, ["-","--"], ["time [s]
 title = 'Reference';
 names = "$"+["r_u","r_v","r_\psi","r_u","r_v","r_\psi","r_u","r_v","r_\psi"]+"$";
 niceplot(T, [History.reta; History.reta2; History.freta], names, title, ["--","-.","-"], ["time [s]", "[-]"], 'southwest');
-title = 'Reference';
-names = "$"+["r_u","r_v","r_\psi","r_u","r_v","r_\psi"]+"$";
-niceplot(T, [History.reta2; History.freta], names, title, ["--","-"], ["time [s]", "[-]"], 'southwest');
 
 title = 'Velocity error';
 names = ["$z_u$","$z_v$","$z_r$"];
@@ -242,45 +194,12 @@ title = 'thetahat';
 names = "$"+["X_{|u|u}" "X_{uuu}"]+"$";
 niceplot(T,History.thetahat(1:2,:), names, title, ["--"], ["time [s]", "[-]"], 'southwest');
 title = 'thetahat';
-names = "$"+["Y_v" "Y_r" "Y_{|v|v}" "Y_{|r|v}" "Y_{|v|r}" "Y_{|r|r}"]+"$";
-niceplot(T,History.thetahat(3:8,:), names, title, ["--"], ["time [s]", "[-]"], 'south');
+names = "$"+["Y_r" "Y_{|v|v}" "Y_{|r|v}" "Y_{|v|r}" "Y_{|r|r}"]+"$";
+niceplot(T,History.thetahat(3:7,:), names, title, ["--"], ["time [s]", "[-]"], 'south');
 title = 'thetahat';
 names = "$"+["N_v" "N_{|v|v}" "N_{|r|v}" "N_{|v|r}" "N_{|r|r}"]+"$";
-niceplot(T,History.thetahat(9:13,:), names, title, ["--"], ["time [s]", "[-]"], 'southeast');
+niceplot(T,History.thetahat(8:12,:), names, title, ["--"], ["time [s]", "[-]"], 'southeast');
 
 title = 'thetahat';
 names = "$"+["\nu_c,x","\nu_c,y"]+"$";
-niceplot(T,History.thetahat(14:15,:), names, title, ["--"], ["time [s]", "[-]"], 'north');
-
-
-
-%% Plot cummulativ error
-close all
-
-z = History.z;
-
-Epos = sqrt(sum(z(1:2,:).^2));
-Ehead = abs(z(3,:));
-Elinvelo = sqrt(sum(z(4:5,:).^2));
-Eyawrate = abs(z(6,:));
-
-cum.Epos = cumsum(Epos*Ts);
-cum.Ehead = cumsum(Ehead*Ts);
-cum.Elinvelo = cumsum(Elinvelo*Ts);
-cum.Eyawrate = cumsum(Eyawrate*Ts);
-
-E = cumsum( [Epos;Ehead;Elinvelo;Eyawrate]*Ts ,2);
-
-title = 'error';
-names = "$"+["pos","velo"]+"$";
-niceplot(T,[Epos;Elinvelo], names, title, ["--"], ["time [s]", "[-]"], 'north');
-title = 'cummulativ error';
-names = "$"+["pos","head","velo","\psi"]+"$";
-niceplot(T,[cum.Epos;cum.Ehead;cum.Elinvelo;cum.Eyawrate ], names, title, ["--"], ["time [s]", "[-]"], 'northeast');
-title = 'cummulativ error';
-names = "$"+["pos","head","velo","\psi"]+"$";
-niceplot(T,E, names, title, ["--"], ["time [s]", "[-]"], 'southeast');
-
-Efinal = E(:,end)
-
-save("Results/Docking-"+weathercondition+".mat",'Efinal');
+niceplot(T,History.thetahat(13:14,:), names, title, ["--"], ["time [s]", "[-]"], 'north');

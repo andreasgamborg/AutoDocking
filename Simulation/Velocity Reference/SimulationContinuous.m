@@ -11,7 +11,7 @@ T = [];
 
 %% Real Vessel
 state(12,1) = pi/2;
-O6 = Otter6(state);
+O6 = Otter(state);
 O6.UseProppeller = true;
 %% Model
 Model = 'Models/Primitive/otter3mtrx_lin.mat'

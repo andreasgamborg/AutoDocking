@@ -12,7 +12,7 @@ T = [];
 %% Real Vessel
 %state(1,1) = 1;
 state(12,1) = 0;
-O6 = Otter6(state);
+O6 = Otter(state);
 O6.UseProppeller = false;
 %% Model
 syms u v w r p q

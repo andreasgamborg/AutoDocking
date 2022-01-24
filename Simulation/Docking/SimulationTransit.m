@@ -14,8 +14,8 @@
     O6 = Otter(state);
     O6.UseProppeller = true;
 
-    O6.setCurrent(1,-pi);
-    O6.setWind(13, pi/2);
+    O6.setCurrent(0.5,-pi);
+    O6.setWind(0, pi/2);
     clear state
 %% Model
 
@@ -52,7 +52,7 @@
     iM = inv(M);
 
 %% Course & Reference
-    load('Course\CosFin.mat','P')
+    load('Course\Figure8.mat','P')
     lookaheaddist = 2;
     pt = 1;
     nP = length(P);
@@ -68,9 +68,13 @@
     Ref.dr= [ 0 0 0 ]';
     Ref.ddr= [ 0 0 0 ]';
     
+    %% Wind
+    Wind = load('Wind\wind4.mat');
 %% Main Loop
 disp('Running Simulation...'), tic;
 for it = 1:N
+    % Wind
+        %O6.setWind(Wind.speed(mod(it,7000)+1), Wind.direction(mod(it,7000)+1));
     % State
         nu_c = O6.getWaterVelo();
         nu_r = O6.State([1 2 6]) - nu_c([1 2 6]) ;
@@ -111,7 +115,9 @@ for it = 1:N
             dir = [next-target; 0];       dir = dir/norm(dir);
             head = atan2(dir(2),dir(1));
 
-            reta = [P(:,pt);head]+excess*dir;
+            reta = [P(1:2,pt);head]+excess*dir;
+            %reta = [P(:,pt)]+excess*dir;
+        else pt = 1;
         end
             
     % Error
@@ -144,8 +150,9 @@ for it = 1:N
         O6.step(Ts);
 
     % Reference dynamics
-
-        Ref.ddr = -Ref.K2*Ref.dr + Ref.K1*(reta-Ref.r);
+        rz = reta-Ref.r;
+        rz(3) = wrapToPi(rz(3));
+        Ref.ddr = -Ref.K2*Ref.dr + Ref.K1*(rz);
         Ref.dr = Ref.dr + Ts*Ref.ddr;
         Ref.r = Ref.r + Ts*Ref.dr;
         

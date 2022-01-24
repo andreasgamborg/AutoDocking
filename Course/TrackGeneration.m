@@ -87,5 +87,49 @@ save('Course/CosFin.mat','P');
 
 
 
+%% 8-loop
+close all
+x = 0:0.5:10;
+nl = length(x);
+line1 = [x;x; -pi/4*ones(1,nl)];
+x = -10:0.5:0;
+nl = length(x);
+line3 = [x;x; -pi/4*ones(1,nl)];
+x = -10:0.5:10;
+nl = length(x);
+line2 = [x;-x; -3*pi/4*ones(1,nl)];
+line2 = flip(line2,2);
+
+
+
+r = sqrt(200);
+w  = 3*pi/4:-0.05:-3*pi/4+0.05;
+x = r* cos(w);
+y = r* sin(w);
+arc1 = [x;y;wrapToPi(-w+pi/2)]+[20;0;0];
+w  = pi/4:0.05:7*pi/4-0.05;
+x = r* cos(w);
+y = r* sin(w);
+arc2 = [x;y;wrapToPi(-(w+pi/2))]+[-20;0;0];
+
+
+figure
+plot(line1(1,:),line1(2,:),'ro'), hold on;
+plot(line2(1,:),line2(2,:),'ro')
+plot(line3(1,:),line3(2,:),'go')
+plot(arc1(1,:),arc1(2,:),'bo')
+plot(arc2(1,:),arc2(2,:),'bo')
+axis equal
+
+P = [line1 arc1 line2 arc2 line3];
+
+
+figure
+plot(P(3,:))
+figure
+plot(P(1,:),P(2,:))
+
+save('Course/Figure8.mat','P');
+
 
 

@@ -113,7 +113,7 @@ classdef Otter < handle
         function setCurrent(O,v,beta)
             O.Current.v = v;
             O.Current.beta = beta;
-            disp('Current has been updated');
+            %disp('Current has been updated');
         end
         function setPayload(O,m,r)
             % Set new payload of mass m at postion r = [x y z]'
@@ -143,8 +143,8 @@ classdef Otter < handle
             
             O.Harbour.BernoulliForce = zeros(6,1);
             
-            figx = [0 0 depth depth 0 0];
-            figy = [10 width/2 width/2 -width/2 -width/2 -10];
+            figx = [depth depth 0 0 depth depth 0 0 depth depth];
+            figy = [10 width/2+1 width/2+1 width/2 width/2 -width/2 -width/2 -width/2-1 -width/2-1 -10];
             
             O.Harbour.fig = pos+[figx;figy];
         end
@@ -344,14 +344,17 @@ classdef Otter < handle
         end
         
         %% Distrubances
-        function tau_wind = windForce(O,V,dir)
+        function tau_wind = windForce(O)
 
             rho_a = 1.225;        % Density of air (kg/m^3)
             
             nu = O.getVelocity();
             psi = O.getHeading();
+            
+            V = O.Wind.mean;
+            dir = O.Wind.dir;
                         
-            V = Rot(dir,2)*[-V;0] + rand(2,1);
+            V = Rot(dir,2)*[-V;0];
             
             v_w = Rot(psi,2)*V - nu;
 
@@ -402,7 +405,7 @@ classdef Otter < handle
         end
         function tau_ext = externalForces(O)
             % Calculate the external forces acting on the vessel
-            Fw = O.windForce(O.Wind.mean,O.Wind.dir);
+            Fw = O.windForce();
             O.Wind.force = Fw;
             
             Fb = zeros(6,1);
@@ -468,7 +471,7 @@ classdef Otter < handle
             
             % Linear damping terms (hydrodynamic derivatives)
             Xu = 24.4 * O.g / O.Umax;           % specified using the maximum speed
-            Yv = 100;
+            Yv = 0;
             Zw = 2 * 0.3 *w3 * O.M(3,3);      % specified using relative damping factors
             Kp = 2 * 0.2 *w4 * O.M(4,4);
             Mq = 2 * 0.4 *w5 * O.M(5,5);
@@ -554,10 +557,9 @@ classdef Otter < handle
         function stepPropeller(O,Ts)
             % Progress time for proppeller, this will make the proppeller
             % state go towards the proppeller setpoint
-            k_pos = 0.02216/2;                      % Positive Bollard, one propeller
-            k_neg = 0.01289/2;                      % Negative Bollard, one propeller
-            n_max =  sqrt((0.5*24.4 * O.g)/k_pos);    % maximum propeller rev. (rad/s)
-            n_min = -sqrt((0.5*13.6 * O.g)/k_neg);    % minimum propeller rev. (rad/s)
+           
+            n_max =  100;    % maximum propeller rev. (rad/s)
+            n_min = -90;    % minimum propeller rev. (rad/s)
             
             dn =    2*(O.Propeller.n_r - O.Propeller.n);
             O.Propeller.n = O.Propeller.n + Ts*dn;
@@ -576,13 +578,13 @@ classdef Otter < handle
             title = 'Course';
             niceplot(O.History.Pos(1,:),O.History.Pos(2,:), [], title, ["--"], ["x [m]", "y [m]"], 'west');
             axis equal
-            grid
+            grid on
             set(gca, 'YDir','reverse')
             if ~isempty(O.Harbour)
                 plot(O.Harbour.fig(1,:), O.Harbour.fig(2,:), 'k-', 'LineWidth', 4);
             end
             color = 'g-';
-            for i = [1:1000:O.t, O.t]
+            for i = [1:2000:O.t, O.t]
                 vessel = vesselplot(O.History.Pos(6,i),O.History.Propeller.state(1:2,i));
                 if i == O.t
                     color = 'r-';
@@ -652,8 +654,7 @@ classdef Otter < handle
                 niceplot(T, O.History.Thrust([1 2 6],:), names, title, ["-"], ["time [s]", "[N]"], 'southwest');
             end
         end
-        
-         function plotDistrubance(O, T)
+        function plotDistrubance(O, T)
             if ~isempty( O.Harbour) 
             title = 'Bernoulli force';
             names = ["$F_bv$"];

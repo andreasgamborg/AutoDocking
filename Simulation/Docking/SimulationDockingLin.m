@@ -5,7 +5,7 @@
 
 %% Init
     Ts = 1/100;
-    N = 60000;
+    N = 30000;
     t = 0; % Start time
     T = [];
 
@@ -16,12 +16,10 @@
     habourPos = [15;10];
     O6.setHarbour(habourPos, 0, 3, 2)
     
-    weathercondition = "no" % mild, fair, harsh or extreme
+    
+    weathercondition = "mild" % mild, fair, harsh or extreme
 
     switch weathercondition
-        case "no"
-            O6.setWind(0, 0);
-            O6.setCurrent(0,pi/4);
         case "mild"
             O6.setWind(0, 0);
             O6.setCurrent(0.1/toKnots(1),pi/4);
@@ -37,43 +35,24 @@
         otherwise
             warning('No such wheather condition defined')
     end
+    
+    O6.setWind(0, 0);
+    O6.setCurrent(0,pi/4);
 
     clear state
 %% Model
 
-    Model = 'Models\Primitive\otter6mtrx.mat'
-    load(Model,'MRB');
-    load(Model,'MA');
+    Model = 'Models/Primitive/otter3mtrx_lin.mat'
+    load(Model);
 
-    % Known Constant parameters
-    M = MRB + MA;
-    M = M([1 2 6],[1 2 6]);
+ 
 
-    Xu = -77.5544;
-    Nr = -45.2650;
-    d = diag([Xu 0 Nr])';
+%% Controller
+    Q = diag([1000 1000 10000]);    % Stateerror cost
+    R = diag([0.1 10 1]);           % Input cost
+    [K,P,E] = lqr(A,B,Q,R);
 
-    clear MA MRB Xu Nr Model
-
-%% Control gains
-    K1 = diag([2, 2, 1])*0.8;
-    K2 = diag([1.3, 1, 1.1])*1.05;
-    ftau = zeros(3,1);
     
-%% Adaptation Init
-    Na = 15;
-    thetahat = zeros(Na,1);
-    Gamma1 = eye(13)*0.1;
-    Gamma2 = eye(2)*0.16;
-
-    Gamma = [   Gamma1 zeros(13,2)
-                zeros(2,13) Gamma2  ];
-            
-    Phi1 = zeros(3,Na);
-    Phi1([1 2],[14 15]) = eye(2);
-    
-    iM = inv(M);
-
 %% Course & Reference
     lookaheaddist = 2;
     pt = 1;
@@ -96,6 +75,10 @@
     Ref.dr= [ 0 0 0 ]';
     Ref.ddr= [ 0 0 0 ]';
     
+    umax = 1;
+    umin = 0;
+    k = 0.8;
+
 %% Main Loop
 disp('Running Simulation...'), tic;
 for it = 1:N
@@ -113,14 +96,6 @@ for it = 1:N
         R = [   cos(psi)   -sin(psi)    0
                 sin(psi)    cos(psi)    0
                 0                  0    1   ];
-        S = [   0   -r    0
-                r    0    0
-                0    0    0   ];
-    
-    % Regressor        
-        Phi2(1, 1:2) = [abs(u)*u u^3];
-        Phi2(2, 3:8) = [v r abs(v)*v abs(r)*v abs(v)*r abs(r)*r];
-        Phi2(3, 9:15) = [v abs(v)*v abs(r)*v abs(v)*r abs(r)*r 0 0];
         
      % Guidance
 
@@ -145,26 +120,12 @@ for it = 1:N
             nP = length(P);
         end
         
-    % Error
         z1 = R'*(eta - Ref.r);
-        z1(3) = wrapToPi(z1(3));
-        alpha = -K1*z1 - R'*(Phi1*thetahat-Ref.dr);
-        z2 = nu_r - alpha;
+                z1(3) = wrapToPi(z1(3));
+
+    ref = diag([0.1 0.1 1])*(z1);
     
-    % Adaptation
-        dthetahat = Gamma * (Phi1'*R*(z1 + K1'*z2) + Phi2'*iM*z2);
-        thetahat = thetahat + Ts*dthetahat;
-        
-        
-    % Control
-        C = [   - 11*r^2 - 137.5000*v*r
-            60.5000*r*u
-            11*r*u];
-        
-        f = M\(d*nu_r - C);
-        falpha = -K1*( S'*z1 + z2 - K1*z1 ) - R'*(S'*(Phi1*thetahat-Ref.dr) + Phi1*dthetahat - Ref.ddr);
-        
-        tau = M*(falpha-f-z1-K2*z2) - Phi2*thetahat;
+    tau = -K*nu_r + ref;
         
     % Input
         Tr([1 2 6],1) = tau;
@@ -182,7 +143,6 @@ for it = 1:N
         Ref.r = Ref.r + Ts*Ref.dr;
         
     % Save
-        History.z(:,it) = [z1;z2];
         History.tau_r(:,it) = tau;
         History.tau_a(:,it) = O6.Thrust([1 2 6]);
         %History.tau_a(:,it) = Ta([1 2 6]);
@@ -191,7 +151,6 @@ for it = 1:N
 
         History.phi(:,it) = O6.State(12);
         History.pos(:,it) = O6.State(7:8);
-        History.thetahat(:,it) = thetahat;
         
         History.reta(:,it) = reta;
         History.reta2(:,it) = Ref.reta;
@@ -228,9 +187,6 @@ title = 'Reference';
 names = "$"+["r_u","r_v","r_\psi","r_u","r_v","r_\psi"]+"$";
 niceplot(T, [History.reta2; History.freta], names, title, ["--","-"], ["time [s]", "[-]"], 'southwest');
 
-title = 'Velocity error';
-names = ["$z_u$","$z_v$","$z_r$"];
-niceplot(T,History.z(4:6,:), names, title, ["-"], ["time [s]", "$[\frac{m}{s}]$"], 'center');
 title = 'Position error';
 names = ["$z_x$","$z_y$","$z_{\psi}$"];
 niceplot(T,History.z(1:3,:), names, title, ["-"], ["time [s]", "$[m]$"], 'northeast');

@@ -94,8 +94,8 @@ latexeq("\bm{\tau}_{cf}",tau_cf11)
 latexeq("\bm{\tau}_{cf}",tau_cf22)
 
 %%
-max_sway = max_sway;                 % Test range sway
-max_yaw = max_yaw;                   % Test range yaw
+max_sway = max_sway*8;                 % Test range sway
+max_yaw = max_yaw*8;                   % Test range yaw
 npoints = 21;                          % Test resolution
 
 v_list = -max_sway  : 2*max_sway/(npoints-1)  : max_sway;
@@ -154,19 +154,21 @@ end
 
 
 
-figure('Name','SwayDampingAll','DefaultAxesFontSize',20)
+figure('Name','SwayDampingAll','DefaultAxesFontSize',26)
     plot3(swaydamp(1,:),swaydamp(2,:),swaydamp(3,:),'o','MarkerSize',6,'MarkerFaceColor','blue','MarkerEdgeColor','white'); hold on
-    surf(v_list,r_list,swaydampfit(:,:,1));
+    %surf(v_list,r_list,swaydampfit(:,:,1));
     surf(v_list,r_list,swaydampfit(:,:,2)); hold off
-    colorbar; grid on
-    xlabel('v [m/s]'); ylabel('r [rad/s]'); zlabel('drag')
+    %colorbar; 
+    grid on
+    xlabel("$v [\frac{m}{s}]$",'Interpreter','latex'); ylabel('$r [\frac{rad}{s}]$','Interpreter','latex'); zlabel('d','Interpreter','latex')
 
-figure('Name','YawDampingAll','DefaultAxesFontSize',20)
+figure('Name','YawDampingAll','DefaultAxesFontSize',26)
     plot3(yawdamp(1,:),yawdamp(2,:),yawdamp(3,:),'o','MarkerSize',6,'MarkerFaceColor','blue','MarkerEdgeColor','white'); hold on
-    surf(v_list,r_list,yawdampfit(:,:,1));
+    %surf(v_list,r_list,yawdampfit(:,:,1));
     surf(v_list,r_list,yawdampfit(:,:,2)); hold off
-    colorbar; grid on
-    xlabel('v [m/s]'); ylabel('r [rad/s]'); zlabel('drag')
+    %colorbar; 
+    grid on
+    xlabel("$v [\frac{m}{s}]$",'Interpreter','latex'); ylabel('$r [\frac{rad}{s}]$','Interpreter','latex'); zlabel('d','Interpreter','latex')
 
 
 
